@@ -38,7 +38,7 @@ const THEMES = {
 let dashboardFixerInterval = null;
 let toolbarObserver = null;
 let settingsObserver = null;
-let todoHighlightObserver = null;
+
 
 // === FEATURE STATE ===
 let isZenMode = false;
@@ -69,16 +69,39 @@ async function init() {
 
     // Real-time Sync with Popup
     chrome.storage.onChanged.addListener((changes, namespace) => {
-        if (namespace === 'local' && changes.theme) {
+        if (namespace !== 'local') return;
+
+        // Theme Change
+        if (changes.theme) {
             const newTheme = changes.theme.newValue;
-            console.log('ScriptFlow: Theme changed to', newTheme);
             applyTheme(newTheme);
 
-            // Update inline toolbar UI if it exists
+            // Update inline toolbar UI
             const select = document.getElementById('sflow-theme-select');
             const toggle = document.getElementById('sflow-theme-toggle');
             if (select) select.value = newTheme;
             if (toggle) updateToggleIcon(toggle, newTheme);
+        }
+
+        // Zen Mode Change
+        if (changes.zenMode) {
+            if (changes.zenMode.newValue !== isZenMode) {
+                toggleZenMode();
+            }
+        }
+
+        // Rainbow Brackets Change
+        if (changes.rainbowBrackets) {
+            if (changes.rainbowBrackets.newValue !== rainbowBracketsEnabled) {
+                toggleRainbowBrackets();
+            }
+        }
+
+        // TODO Highlight Change
+        if (changes.todoHighlight) {
+            if (changes.todoHighlight.newValue !== todoHighlightEnabled) {
+                toggleTodoHighlight();
+            }
         }
     });
 
@@ -627,7 +650,7 @@ function waitForToolbarAndInject() {
     // Safety timeout: disconnect observer after 30 seconds if toolbar not found
     setTimeout(() => {
         if (toolbarObserver && !document.getElementById('sflow-toolbar')) {
-            console.log('ScriptFlow: Toolbar observer timeout - disconnecting');
+
             toolbarObserver.disconnect();
             toolbarObserver = null;
         }
@@ -935,10 +958,10 @@ function toggleZenMode() {
 
     if (isZenMode) {
         document.body.classList.add('sflow-zen-mode');
-        console.log('ScriptFlow: Zen Mode enabled');
+
     } else {
         document.body.classList.remove('sflow-zen-mode');
-        console.log('ScriptFlow: Zen Mode disabled');
+
     }
 
     // Update button icon
@@ -1042,7 +1065,7 @@ function applyFont(fontKey) {
         `;
     }
 
-    console.log('ScriptFlow: Font changed to', font.name);
+
 
     // Save preference
     try {
@@ -1066,10 +1089,10 @@ function toggleTodoHighlight() {
 
     if (todoHighlightEnabled) {
         injectTodoStyles();
-        console.log('ScriptFlow: TODO highlighting enabled');
+
     } else {
         removeTodoStyles();
-        console.log('ScriptFlow: TODO highlighting disabled');
+
     }
 
     try {
@@ -1356,11 +1379,11 @@ function toggleRainbowBrackets() {
     if (rainbowBracketsEnabled) {
         injectRainbowStyles();
         startRainbowObserver();
-        console.log('ScriptFlow: Rainbow Brackets enabled');
+
     } else {
         removeRainbowStyles();
         stopRainbowObserver();
-        console.log('ScriptFlow: Rainbow Brackets disabled');
+
     }
 
     try {
@@ -1733,7 +1756,7 @@ function insertSnippet(snippet, deleteChars) {
     // Insert the snippet text
     document.execCommand('insertText', false, processedSnippet);
 
-    console.log('ScriptFlow: Snippet expanded');
+
     hideSnippetPopup();
 }
 

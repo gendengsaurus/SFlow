@@ -16,17 +16,35 @@
     border: none;
     color: #5f6368;
     padding: 8px;
-    border-radius: 50%;
+    margin: 0 2px;
+    border-radius: 6px;
+    /* Squircle looks more modern than circle */
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s, color 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
 .sflow-icon-btn:hover {
-    background: rgba(0, 0, 0, 0.08);
+    background: rgba(0, 0, 0, 0.06);
     color: #202124;
+    transform: translateY(-1px);
+}
+
+.sflow-icon-btn:active {
+    transform: translateY(1px);
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.sflow-icon-btn svg {
+    transition: transform 0.2s;
+}
+
+.sflow-icon-btn:hover svg {
+    transform: scale(1.1);
 }
 
 /* =========================================

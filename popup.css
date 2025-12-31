@@ -4,26 +4,29 @@
     --bg-hover: #44475A;
     --fg-primary: #F8F8F2;
     --fg-secondary: #BD93F9;
-    /* Dracula Purple */
     --accent-color: #BD93F9;
     --border-color: #44475A;
     --success-color: #50FA7B;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     padding: 0;
-    width: 280px;
+    width: 300px;
     background-color: var(--bg-primary);
     color: var(--fg-primary);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .container {
     padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
 }
 
 /* Header */
@@ -36,23 +39,38 @@ header {
 .logo-section {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    font-size: 16px;
-    color: var(--fg-primary);
+    gap: 10px;
 }
 
 .logo-icon-img {
-    border-radius: 4px;
-    /* Slight rounded corners for the icon */
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(189, 147, 249, 0.3);
 }
 
-/* Toggle Switch */
+.title-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--fg-primary);
+    line-height: 1.2;
+}
+
+.subtitle {
+    font-size: 10px;
+    color: var(--fg-secondary);
+    opacity: 0.8;
+}
+
+/* Main Toggle Switch */
 .switch {
     position: relative;
     display: inline-block;
-    width: 40px;
-    height: 20px;
+    width: 44px;
+    height: 24px;
 }
 
 .switch input {
@@ -69,20 +87,19 @@ header {
     right: 0;
     bottom: 0;
     background-color: var(--bg-hover);
-    /* Grey when off */
-    transition: .4s;
+    transition: .3s;
     border-radius: 34px;
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 16px;
-    width: 16px;
-    left: 2px;
-    bottom: 2px;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
     background-color: white;
-    transition: .4s;
+    transition: .3s;
     border-radius: 50%;
 }
 
@@ -97,25 +114,36 @@ input:checked+.slider:before {
 /* Divider */
 .divider {
     height: 1px;
-    background-color: var(--border-color);
+    background: linear-gradient(90deg, transparent, var(--border-color), transparent);
     width: 100%;
 }
 
-/* Settings */
-.settings-group {
+/* Settings Section */
+.settings-section {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
-.label-text {
-    font-size: 12px;
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.section-icon {
+    font-size: 14px;
+}
+
+.section-title {
+    font-size: 11px;
     color: #8b9bb4;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
+    letter-spacing: 0.8px;
+    font-weight: 700;
 }
 
+/* Select Dropdown */
 .select-wrapper {
     position: relative;
 }
@@ -125,21 +153,23 @@ select {
     background-color: var(--bg-secondary);
     color: var(--fg-primary);
     border: 1px solid var(--border-color);
-    padding: 8px 12px;
-    border-radius: 6px;
+    padding: 10px 14px;
+    border-radius: 8px;
     appearance: none;
     cursor: pointer;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
 }
 
 select:hover {
     border-color: var(--fg-secondary);
+    background-color: var(--bg-hover);
 }
 
 select:focus {
     border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(189, 147, 249, 0.2);
 }
 
 .chevron {
@@ -151,55 +181,162 @@ select:focus {
     color: var(--fg-secondary);
 }
 
+/* Feature Toggles */
+.feature-toggles {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.feature-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.feature-toggle:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-color);
+}
+
+.feature-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.feature-icon {
+    font-size: 16px;
+}
+
+.feature-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--fg-primary);
+}
+
+/* Small Toggle */
+.feature-toggle input {
+    display: none;
+}
+
+.toggle-slider {
+    width: 36px;
+    height: 20px;
+    background: var(--bg-hover);
+    border-radius: 10px;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: all 0.3s;
+}
+
+.feature-toggle input:checked+.toggle-slider {
+    background: var(--accent-color);
+}
+
+.feature-toggle input:checked+.toggle-slider::before {
+    transform: translateX(16px);
+}
+
+/* Shortcuts Section */
+.shortcuts-section {
+    padding-bottom: 0;
+}
+
+.shortcuts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.shortcut-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+}
+
+.shortcut-item kbd {
+    background: var(--bg-hover);
+    color: var(--fg-secondary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: 'SF Mono', 'Consolas', monospace;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+}
+
+.shortcut-item span {
+    font-size: 10px;
+    color: #8b9bb4;
+}
+
 /* Support Section */
 .support-section {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
-.love-btn {
+.love-btn,
+.rate-btn {
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    width: 100%;
+    gap: 6px;
     background-color: var(--bg-secondary);
-    color: #ffffff;
-    /* Explicitly White Text */
+    color: var(--fg-primary);
     border: 1px solid var(--border-color);
     padding: 10px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
     font-weight: 600;
+    font-size: 13px;
+    text-decoration: none;
 }
 
-.love-btn:hover {
+.love-btn:hover,
+.rate-btn:hover {
     background-color: var(--bg-hover);
     transform: translateY(-1px);
+    border-color: var(--accent-color);
 }
 
-.heart-icon {
-    transition: transform 0.2s;
-    /* Heart remains red via inline fill or here */
-    color: #FF5555;
-}
-
-.love-btn:hover .heart-icon {
-    transform: scale(1.1);
+.rate-btn svg {
+    color: #FFD700;
 }
 
 /* Support Links Dropdown */
-/* Specificity Fix: Ensure this wins */
 .support-links.hidden {
     display: none !important;
 }
 
 .support-links {
     display: flex;
-    /* This was overriding hidden before */
-    flex-direction: column;
+    width: 100%;
     gap: 8px;
     animation: slideDown 0.3s ease-out;
 }
@@ -207,7 +344,7 @@ select:focus {
 @keyframes slideDown {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-8px);
     }
 
     to {
@@ -217,35 +354,37 @@ select:focus {
 }
 
 .support-link {
+    flex: 1;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-radius: 6px;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 8px;
     text-decoration: none;
-    font-weight: 500;
-    transition: filter 0.2s;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
 }
 
 .support-link:hover {
+    transform: translateY(-1px);
     filter: brightness(1.1);
 }
 
 .support-icon {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     object-fit: contain;
 }
 
 .trakteer {
     background-color: #BE1E2D;
-    /* Trakteer Red */
     color: white;
 }
 
 .kofi {
     background-color: #29abe0;
-    /* Ko-Fi Blue */
     color: white;
 }
 
@@ -253,6 +392,22 @@ select:focus {
 .footer {
     display: flex;
     justify-content: center;
-    font-size: 10px;
+    align-items: center;
+    gap: 12px;
+    padding-top: 4px;
+}
+
+.github-link {
     color: #6272A4;
+    transition: color 0.2s;
+}
+
+.github-link:hover {
+    color: var(--fg-primary);
+}
+
+.version {
+    font-size: 11px;
+    color: #6272A4;
+    font-weight: 500;
 }

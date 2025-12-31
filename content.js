@@ -38,12 +38,25 @@ const THEMES = {
 let dashboardFixerInterval = null;
 let toolbarObserver = null;
 let settingsObserver = null;
+let todoHighlightObserver = null;
+
+// === FEATURE STATE ===
+let isZenMode = false;
+let currentFont = 'default';
+let snippetsEnabled = true;
 
 const SVGs = {
     moon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
     sun: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
     lightning: `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>`,
-    clock: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`
+    clock: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+    // NEW ICONS
+    zen: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`,
+    zenExit: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>`,
+    font: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>`,
+    todo: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>`,
+    snippet: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`,
+    command: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"></path></svg>`
 };
 
 async function init() {
@@ -631,7 +644,7 @@ function injectToolbarInline(container, referenceNode) {
         </div>
 
         <div class="sflow-control-group">
-            <select id="sflow-theme-select">
+            <select id="sflow-theme-select" title="Select Theme">
                 <option value="default">Default</option>
                 <option value="dracula">Dracula</option>
                 <option value="monokai">Monokai</option>
@@ -639,8 +652,39 @@ function injectToolbarInline(container, referenceNode) {
             </select>
         </div>
 
+        <div class="sflow-divider"></div>
 
+        <div class="sflow-control-group">
+            <button id="sflow-zen-toggle" class="sflow-icon-btn" title="Zen Mode (F11)">
+                ${SVGs.zen}
+            </button>
+        </div>
+
+        <div class="sflow-control-group">
+            <select id="sflow-font-select" title="Editor Font">
+                <option value="default">Default Font</option>
+                <option value="firacode">Fira Code</option>
+                <option value="jetbrains">JetBrains Mono</option>
+                <option value="cascadia">Cascadia Code</option>
+                <option value="source">Source Code Pro</option>
+            </select>
+        </div>
+
+        <div class="sflow-divider"></div>
+
+        <div class="sflow-control-group">
+            <button id="sflow-todo-toggle" class="sflow-icon-btn" title="Highlight TODOs">
+                ${SVGs.todo}
+            </button>
+        </div>
+
+        <div class="sflow-control-group">
+            <button id="sflow-command-palette" class="sflow-icon-btn" title="Command Palette (Ctrl+Shift+P)">
+                ${SVGs.command}
+            </button>
+        </div>
     `;
+
 
     if (referenceNode) {
         container.insertBefore(toolbar, referenceNode);
@@ -667,7 +711,33 @@ function setupToolbarListeners() {
         updateThemeState(e.target.value);
     });
 
+    // === NEW FEATURE LISTENERS ===
 
+    // Zen Mode Button
+    const zenBtn = document.getElementById('sflow-zen-toggle');
+    if (zenBtn) {
+        zenBtn.addEventListener('click', toggleZenMode);
+    }
+
+    // Font Selector
+    const fontSelect = document.getElementById('sflow-font-select');
+    if (fontSelect) {
+        fontSelect.addEventListener('change', (e) => {
+            applyFont(e.target.value);
+        });
+    }
+
+    // TODO Highlight Button
+    const todoBtn = document.getElementById('sflow-todo-toggle');
+    if (todoBtn) {
+        todoBtn.addEventListener('click', toggleTodoHighlight);
+    }
+
+    // Command Palette Button
+    const cmdBtn = document.getElementById('sflow-command-palette');
+    if (cmdBtn) {
+        cmdBtn.addEventListener('click', openCommandPalette);
+    }
 
     // Initialize State
     try {
@@ -711,6 +781,12 @@ function setupToolbarListeners() {
             toggleBtn.title = "Switch to Light Mode";
         }
     }
+
+    // Setup keyboard shortcuts
+    setupGlobalShortcuts();
+
+    // Load saved feature settings (after a small delay to ensure DOM is ready)
+    setTimeout(loadFeatureSettings, 500);
 }
 
 function applyTheme(themeName) {
@@ -814,6 +890,399 @@ function injectSettingsStyles(themeParams) {
             }
         });
         window.sflowSettingsObserver.observe(document.body, { childList: true, subtree: true });
+    }
+}
+
+// ===========================================
+// PHASE 1 FEATURES
+// ===========================================
+
+// === ZEN MODE ===
+function toggleZenMode() {
+    isZenMode = !isZenMode;
+
+    if (isZenMode) {
+        document.body.classList.add('sflow-zen-mode');
+        console.log('ScriptFlow: Zen Mode enabled');
+    } else {
+        document.body.classList.remove('sflow-zen-mode');
+        console.log('ScriptFlow: Zen Mode disabled');
+    }
+
+    // Update button icon
+    const zenBtn = document.getElementById('sflow-zen-toggle');
+    if (zenBtn) {
+        zenBtn.innerHTML = isZenMode ? SVGs.zenExit : SVGs.zen;
+        zenBtn.title = isZenMode ? 'Exit Zen Mode (F11)' : 'Zen Mode (F11)';
+        zenBtn.classList.toggle('active', isZenMode);
+    }
+
+    // Save state
+    try {
+        chrome.storage.local.set({ zenMode: isZenMode });
+    } catch (e) {
+        console.warn('ScriptFlow: Could not save Zen Mode state');
+    }
+}
+
+// === FONT MANAGER ===
+const FONTS = {
+    default: { family: 'inherit', name: 'Default' },
+    firacode: {
+        family: "'Fira Code', 'Fira Mono', monospace",
+        name: 'Fira Code',
+        url: 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap'
+    },
+    jetbrains: {
+        family: "'JetBrains Mono', monospace",
+        name: 'JetBrains Mono',
+        url: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap'
+    },
+    cascadia: {
+        family: "'Cascadia Code', 'Cascadia Mono', monospace",
+        name: 'Cascadia Code',
+        url: 'https://fonts.googleapis.com/css2?family=Cascadia+Code&display=swap'
+    },
+    source: {
+        family: "'Source Code Pro', monospace",
+        name: 'Source Code Pro',
+        url: 'https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500;600&display=swap'
+    }
+};
+
+function applyFont(fontKey) {
+    currentFont = fontKey;
+    const font = FONTS[fontKey] || FONTS.default;
+
+    // Load Google Font if needed
+    if (font.url) {
+        let linkEl = document.getElementById('sflow-font-link');
+        if (!linkEl) {
+            linkEl = document.createElement('link');
+            linkEl.id = 'sflow-font-link';
+            linkEl.rel = 'stylesheet';
+            document.head.appendChild(linkEl);
+        }
+        linkEl.href = font.url;
+    }
+
+    // Apply font via CSS
+    let styleEl = document.getElementById('sflow-font-styles');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'sflow-font-styles';
+        document.head.appendChild(styleEl);
+    }
+
+    if (fontKey === 'default') {
+        styleEl.textContent = '';
+    } else {
+        styleEl.textContent = `
+            .monaco-editor,
+            .monaco-editor .view-lines,
+            .monaco-editor .view-line,
+            .monaco-editor .mtk1,
+            .monaco-editor .mtk2,
+            .monaco-editor .mtk3,
+            .monaco-editor .mtk4,
+            .monaco-editor .mtk5,
+            .monaco-editor .mtk6,
+            .monaco-editor .mtk7,
+            .monaco-editor .mtk8,
+            .monaco-editor .mtk9,
+            .monaco-editor .mtk10,
+            .monaco-editor .mtk11,
+            .monaco-editor .mtk12,
+            .monaco-editor .mtk13,
+            .monaco-editor .mtk14,
+            .monaco-editor .mtk15,
+            .monaco-editor .mtk16,
+            .monaco-editor .mtk17,
+            .monaco-editor .mtk18,
+            .monaco-editor .mtk19,
+            .monaco-editor .mtk20,
+            .monaco-editor .mtk21,
+            .monaco-editor .mtk22,
+            .monaco-editor .line-numbers {
+                font-family: ${font.family} !important;
+                font-feature-settings: "liga" 1, "calt" 1 !important; /* Enable ligatures */
+            }
+        `;
+    }
+
+    console.log('ScriptFlow: Font changed to', font.name);
+
+    // Save preference
+    try {
+        chrome.storage.local.set({ font: fontKey });
+    } catch (e) {
+        console.warn('ScriptFlow: Could not save font preference');
+    }
+}
+
+// === TODO/FIXME HIGHLIGHTER ===
+let todoHighlightEnabled = false;
+
+function toggleTodoHighlight() {
+    todoHighlightEnabled = !todoHighlightEnabled;
+
+    const todoBtn = document.getElementById('sflow-todo-toggle');
+    if (todoBtn) {
+        todoBtn.classList.toggle('active', todoHighlightEnabled);
+        todoBtn.title = todoHighlightEnabled ? 'TODO Highlighting ON' : 'Highlight TODOs';
+    }
+
+    if (todoHighlightEnabled) {
+        injectTodoStyles();
+        console.log('ScriptFlow: TODO highlighting enabled');
+    } else {
+        removeTodoStyles();
+        console.log('ScriptFlow: TODO highlighting disabled');
+    }
+
+    try {
+        chrome.storage.local.set({ todoHighlight: todoHighlightEnabled });
+    } catch (e) { }
+}
+
+function injectTodoStyles() {
+    let styleEl = document.getElementById('sflow-todo-styles');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'sflow-todo-styles';
+        document.head.appendChild(styleEl);
+    }
+
+    // Use CSS to highlight TODO/FIXME/HACK/NOTE in comments
+    // This works by targeting comment tokens and using CSS contains selector
+    styleEl.textContent = `
+        /* Highlight TODO comments - applied via class */
+        .sflow-todo { 
+            background: rgba(241, 250, 140, 0.3) !important; 
+            color: #F1FA8C !important;
+            font-weight: 600 !important;
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+        .sflow-fixme { 
+            background: rgba(255, 85, 85, 0.3) !important; 
+            color: #FF5555 !important;
+            font-weight: 600 !important;
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+        .sflow-hack { 
+            background: rgba(255, 184, 108, 0.3) !important; 
+            color: #FFB86C !important;
+            font-weight: 600 !important;
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+        .sflow-note { 
+            background: rgba(139, 233, 253, 0.3) !important; 
+            color: #8BE9FD !important;
+            font-weight: 600 !important;
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+    `;
+}
+
+function removeTodoStyles() {
+    const styleEl = document.getElementById('sflow-todo-styles');
+    if (styleEl) {
+        styleEl.textContent = '';
+    }
+}
+
+// === COMMAND PALETTE ===
+function openCommandPalette() {
+    // Check if already open
+    if (document.getElementById('sflow-command-palette-modal')) {
+        closeCommandPalette();
+        return;
+    }
+
+    const commands = [
+        { name: 'Toggle Zen Mode', action: toggleZenMode, shortcut: 'F11' },
+        {
+            name: 'Toggle Dark/Light Mode', action: () => {
+                const select = document.getElementById('sflow-theme-select');
+                if (select) {
+                    const newTheme = select.value === 'default' ? 'dracula' : 'default';
+                    select.value = newTheme;
+                    select.dispatchEvent(new Event('change'));
+                }
+            }, shortcut: ''
+        },
+        { name: 'Theme: Dracula', action: () => setThemeFromPalette('dracula'), shortcut: '' },
+        { name: 'Theme: Monokai', action: () => setThemeFromPalette('monokai'), shortcut: '' },
+        { name: 'Theme: Nord', action: () => setThemeFromPalette('nord'), shortcut: '' },
+        { name: 'Theme: Default (Light)', action: () => setThemeFromPalette('default'), shortcut: '' },
+        { name: 'Font: Fira Code', action: () => setFontFromPalette('firacode'), shortcut: '' },
+        { name: 'Font: JetBrains Mono', action: () => setFontFromPalette('jetbrains'), shortcut: '' },
+        { name: 'Font: Default', action: () => setFontFromPalette('default'), shortcut: '' },
+        { name: 'Toggle TODO Highlighting', action: toggleTodoHighlight, shortcut: '' },
+    ];
+
+    const overlay = document.createElement('div');
+    overlay.id = 'sflow-command-palette-modal';
+    overlay.className = 'sflow-palette-overlay';
+
+    overlay.innerHTML = `
+        <div class="sflow-palette-container">
+            <input type="text" class="sflow-palette-input" placeholder="Type a command..." autofocus>
+            <div class="sflow-palette-results"></div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const input = overlay.querySelector('.sflow-palette-input');
+    const results = overlay.querySelector('.sflow-palette-results');
+
+    function renderResults(filter = '') {
+        const filtered = commands.filter(cmd =>
+            cmd.name.toLowerCase().includes(filter.toLowerCase())
+        );
+
+        results.innerHTML = filtered.map((cmd, i) => `
+            <div class="sflow-palette-item${i === 0 ? ' selected' : ''}" data-index="${i}">
+                <span class="sflow-palette-name">${cmd.name}</span>
+                ${cmd.shortcut ? `<span class="sflow-palette-shortcut">${cmd.shortcut}</span>` : ''}
+            </div>
+        `).join('');
+
+        // Attach click handlers
+        results.querySelectorAll('.sflow-palette-item').forEach((item, idx) => {
+            item.addEventListener('click', () => {
+                filtered[idx].action();
+                closeCommandPalette();
+            });
+        });
+
+        return filtered;
+    }
+
+    let filteredCommands = renderResults();
+    let selectedIndex = 0;
+
+    input.addEventListener('input', (e) => {
+        filteredCommands = renderResults(e.target.value);
+        selectedIndex = 0;
+    });
+
+    input.addEventListener('keydown', (e) => {
+        const items = results.querySelectorAll('.sflow-palette-item');
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+            updateSelection(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = Math.max(selectedIndex - 1, 0);
+            updateSelection(items);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (filteredCommands[selectedIndex]) {
+                filteredCommands[selectedIndex].action();
+                closeCommandPalette();
+            }
+        } else if (e.key === 'Escape') {
+            closeCommandPalette();
+        }
+    });
+
+    function updateSelection(items) {
+        items.forEach((item, i) => {
+            item.classList.toggle('selected', i === selectedIndex);
+        });
+    }
+
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            closeCommandPalette();
+        }
+    });
+
+    input.focus();
+}
+
+function closeCommandPalette() {
+    const modal = document.getElementById('sflow-command-palette-modal');
+    if (modal) modal.remove();
+}
+
+function setThemeFromPalette(themeName) {
+    const select = document.getElementById('sflow-theme-select');
+    if (select) {
+        select.value = themeName;
+        select.dispatchEvent(new Event('change'));
+    }
+}
+
+function setFontFromPalette(fontKey) {
+    const select = document.getElementById('sflow-font-select');
+    if (select) {
+        select.value = fontKey;
+        applyFont(fontKey);
+    }
+}
+
+// === KEYBOARD SHORTCUTS ===
+function setupGlobalShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // F11 - Zen Mode
+        if (e.key === 'F11') {
+            e.preventDefault();
+            toggleZenMode();
+        }
+
+        // Ctrl+Shift+P - Command Palette
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
+            e.preventDefault();
+            openCommandPalette();
+        }
+
+        // Escape - Close modals
+        if (e.key === 'Escape') {
+            if (isZenMode) {
+                toggleZenMode();
+            }
+            closeCommandPalette();
+        }
+    });
+}
+
+// === LOAD SAVED SETTINGS ===
+function loadFeatureSettings() {
+    try {
+        chrome.storage.local.get(['zenMode', 'font', 'todoHighlight'], (result) => {
+            if (chrome.runtime.lastError) return;
+
+            // Restore Zen Mode
+            if (result.zenMode) {
+                isZenMode = false; // Will be toggled to true
+                toggleZenMode();
+            }
+
+            // Restore Font
+            if (result.font && result.font !== 'default') {
+                const fontSelect = document.getElementById('sflow-font-select');
+                if (fontSelect) fontSelect.value = result.font;
+                applyFont(result.font);
+            }
+
+            // Restore TODO Highlight
+            if (result.todoHighlight) {
+                todoHighlightEnabled = false;
+                toggleTodoHighlight();
+            }
+        });
+    } catch (e) {
+        console.warn('ScriptFlow: Could not load feature settings');
     }
 }
 

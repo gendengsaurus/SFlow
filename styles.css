@@ -822,3 +822,261 @@ body[class*="sflow-theme-"] .sflow-close-btn {
 body[class*="sflow-theme-"] .sflow-close-btn:hover {
     color: var(--color-danger, #FF5555) !important;
 }
+
+/* =========================================
+   PHASE 1 FEATURES - NEW STYLES
+   ========================================= */
+
+/* Toolbar Divider */
+.sflow-divider {
+    width: 1px;
+    height: 20px;
+    background-color: #dadce0;
+    margin: 0 4px;
+}
+
+body[class*="sflow-theme-"] .sflow-divider {
+    background-color: var(--border-color) !important;
+}
+
+/* Font Selector Dropdown */
+#sflow-font-select {
+    appearance: none;
+    background-color: transparent;
+    border: 1px solid transparent;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #5f6368;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#sflow-font-select:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: #202124;
+}
+
+body[class*="sflow-theme-"] #sflow-font-select {
+    color: var(--fg-primary);
+}
+
+/* Active Button State */
+.sflow-icon-btn.active {
+    background: rgba(189, 147, 249, 0.2) !important;
+    color: #BD93F9 !important;
+}
+
+body[class*="sflow-theme-"] .sflow-icon-btn.active {
+    background: rgba(var(--accent-color), 0.2) !important;
+}
+
+body[class*="sflow-theme-"] .sflow-icon-btn.active svg,
+body[class*="sflow-theme-"] .sflow-icon-btn.active svg * {
+    stroke: var(--accent-color) !important;
+}
+
+/* =========================================
+   ZEN MODE - FULLSCREEN FOCUS
+   ========================================= */
+
+body.sflow-zen-mode {
+    overflow: hidden !important;
+}
+
+/* Hide everything except the editor */
+body.sflow-zen-mode div[role="banner"],
+body.sflow-zen-mode header,
+body.sflow-zen-mode div[role="navigation"],
+body.sflow-zen-mode .goog-splitpane-first-container,
+body.sflow-zen-mode .layout-vertical>.layout-horizontal:first-child,
+body.sflow-zen-mode [class*="sidebar"],
+body.sflow-zen-mode [class*="header"],
+body.sflow-zen-mode [class*="footer"],
+body.sflow-zen-mode .feature-header,
+body.sflow-zen-mode .lb-header {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Make editor fullscreen */
+body.sflow-zen-mode .monaco-editor,
+body.sflow-zen-mode .editor-scrollable,
+body.sflow-zen-mode [class*="editor-container"],
+body.sflow-zen-mode .goog-splitpane-second-container {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9998 !important;
+}
+
+/* Keep toolbar visible in Zen Mode for easy exit */
+body.sflow-zen-mode #sflow-toolbar {
+    position: fixed !important;
+    top: 10px !important;
+    right: 10px !important;
+    z-index: 9999 !important;
+    background: var(--bg-secondary, #282A36) !important;
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
+}
+
+body.sflow-zen-mode #sflow-toolbar:hover {
+    opacity: 1;
+}
+
+/* Zen Mode Exit Hint */
+body.sflow-zen-mode::after {
+    content: "Press ESC or F11 to exit Zen Mode";
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+    opacity: 0;
+    animation: zenHintFade 3s ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes zenHintFade {
+
+    0%,
+    70% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+/* =========================================
+   COMMAND PALETTE
+   ========================================= */
+
+.sflow-palette-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10001;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 15vh;
+}
+
+.sflow-palette-container {
+    width: 500px;
+    max-width: 90vw;
+    background: #282A36;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    animation: paletteSlideIn 0.15s ease-out;
+}
+
+@keyframes paletteSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sflow-palette-input {
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #44475A;
+    color: #F8F8F2;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.sflow-palette-input::placeholder {
+    color: #6272A4;
+}
+
+.sflow-palette-results {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.sflow-palette-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.sflow-palette-item:hover,
+.sflow-palette-item.selected {
+    background: #44475A;
+}
+
+.sflow-palette-name {
+    color: #F8F8F2;
+    font-size: 14px;
+}
+
+.sflow-palette-shortcut {
+    color: #6272A4;
+    font-size: 12px;
+    background: #21222C;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+/* Theme-aware Command Palette */
+body.sflow-theme-monokai .sflow-palette-container {
+    background: #272822;
+}
+
+body.sflow-theme-monokai .sflow-palette-input {
+    border-bottom-color: #49483e;
+}
+
+body.sflow-theme-monokai .sflow-palette-item:hover,
+body.sflow-theme-monokai .sflow-palette-item.selected {
+    background: #49483e;
+}
+
+body.sflow-theme-nord .sflow-palette-container {
+    background: #2e3440;
+}
+
+body.sflow-theme-nord .sflow-palette-input {
+    border-bottom-color: #4c566a;
+}
+
+body.sflow-theme-nord .sflow-palette-item:hover,
+body.sflow-theme-nord .sflow-palette-item.selected {
+    background: #434c5e;
+}

@@ -638,13 +638,13 @@ function injectToolbarInline(container, referenceNode) {
 
     toolbar.innerHTML = `
         <div class="sflow-control-group">
-            <button id="sflow-theme-toggle" class="sflow-icon-btn" title="Toggle Dark Mode">
+            <button id="sflow-theme-toggle" class="sflow-icon-btn sflow-tooltip" data-tooltip="Toggle Dark/Light Mode">
                 ${SVGs.sun}
             </button>
         </div>
 
         <div class="sflow-control-group">
-            <select id="sflow-theme-select" title="Select Theme">
+            <select id="sflow-theme-select" class="sflow-tooltip" data-tooltip="Select Theme">
                 <option value="default">Default</option>
                 <option value="dracula">Dracula</option>
                 <option value="monokai">Monokai</option>
@@ -655,13 +655,13 @@ function injectToolbarInline(container, referenceNode) {
         <div class="sflow-divider"></div>
 
         <div class="sflow-control-group">
-            <button id="sflow-zen-toggle" class="sflow-icon-btn" title="Zen Mode (F11)">
+            <button id="sflow-zen-toggle" class="sflow-icon-btn sflow-tooltip" data-tooltip="Zen Mode (F11)">
                 ${SVGs.zen}
             </button>
         </div>
 
         <div class="sflow-control-group">
-            <select id="sflow-font-select" title="Editor Font">
+            <select id="sflow-font-select" class="sflow-tooltip" data-tooltip="Editor Font">
                 <option value="default">Default Font</option>
                 <option value="firacode">Fira Code</option>
                 <option value="jetbrains">JetBrains Mono</option>
@@ -673,13 +673,13 @@ function injectToolbarInline(container, referenceNode) {
         <div class="sflow-divider"></div>
 
         <div class="sflow-control-group">
-            <button id="sflow-todo-toggle" class="sflow-icon-btn" title="Highlight TODOs">
+            <button id="sflow-todo-toggle" class="sflow-icon-btn sflow-tooltip" data-tooltip="Highlight TODO/FIXME">
                 ${SVGs.todo}
             </button>
         </div>
 
         <div class="sflow-control-group">
-            <button id="sflow-command-palette" class="sflow-icon-btn" title="Command Palette (Ctrl+Shift+P)">
+            <button id="sflow-command-palette" class="sflow-icon-btn sflow-tooltip" data-tooltip="Command Palette (Ctrl+Shift+P)">
                 ${SVGs.command}
             </button>
         </div>

@@ -29,6 +29,90 @@
     color: #202124;
 }
 
+/* =========================================
+   CUSTOM TOOLTIPS - Much more visible!
+   ========================================= */
+
+.sflow-tooltip {
+    position: relative;
+}
+
+.sflow-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a2e;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    z-index: 10000;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Arrow pointing up */
+.sflow-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-bottom-color: #1a1a2e;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    z-index: 10000;
+}
+
+.sflow-tooltip:hover::after,
+.sflow-tooltip:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Theme-aware tooltips */
+body[class*="sflow-theme-"] .sflow-tooltip::after {
+    background: var(--bg-secondary, #21222C);
+    color: var(--fg-primary, #F8F8F2);
+    border: 1px solid var(--border-color, #44475A);
+}
+
+body[class*="sflow-theme-"] .sflow-tooltip::before {
+    border-bottom-color: var(--bg-secondary, #21222C);
+}
+
+/* Special positioning for elements at edges */
+.sflow-toolbar-inline .sflow-control-group:first-child .sflow-tooltip::after {
+    left: 0;
+    transform: translateX(0);
+}
+
+.sflow-toolbar-inline .sflow-control-group:first-child .sflow-tooltip::before {
+    left: 16px;
+    transform: translateX(0);
+}
+
+.sflow-toolbar-inline .sflow-control-group:last-child .sflow-tooltip::after {
+    left: auto;
+    right: 0;
+    transform: translateX(0);
+}
+
+.sflow-toolbar-inline .sflow-control-group:last-child .sflow-tooltip::before {
+    left: auto;
+    right: 16px;
+    transform: translateX(0);
+}
+
 /* Force all SFlow icons to use Stroke, NO Fill (Fixes white circle issue) */
 body[class*="sflow-theme-"] .sflow-toolbar-inline .sflow-icon-btn svg,
 body[class*="sflow-theme-"] .sflow-toolbar-inline .sflow-icon-btn svg * {

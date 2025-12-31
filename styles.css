@@ -1331,3 +1331,120 @@ body.sflow-theme-nord .sflow-snippet-trigger {
 body.sflow-theme-nord .sflow-snippet-code {
     color: #a3be8c;
 }
+
+/* =========================================
+   SNIPPET AUTOCOMPLETE POPUP
+   ========================================= */
+
+.sflow-autocomplete-popup {
+    position: fixed;
+    z-index: 10002;
+    min-width: 280px;
+    max-width: 450px;
+    max-height: 320px;
+    background: #282A36;
+    border: 1px solid #44475A;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    overflow-y: auto;
+    display: none;
+    animation: acPopupIn 0.1s ease-out;
+}
+
+@keyframes acPopupIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sflow-autocomplete-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #44475A;
+    transition: background 0.1s;
+}
+
+.sflow-autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.sflow-autocomplete-item:hover,
+.sflow-autocomplete-item.selected {
+    background: #44475A;
+}
+
+.sflow-autocomplete-item.selected {
+    background: #6272A4;
+}
+
+.sflow-ac-trigger {
+    color: #BD93F9;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    min-width: 70px;
+}
+
+.sflow-ac-trigger strong {
+    color: #FF79C6;
+}
+
+.sflow-ac-preview {
+    color: #6272A4;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Theme variants */
+body.sflow-theme-monokai .sflow-autocomplete-popup {
+    background: #272822;
+    border-color: #49483e;
+}
+
+body.sflow-theme-monokai .sflow-autocomplete-item {
+    border-bottom-color: #49483e;
+}
+
+body.sflow-theme-monokai .sflow-autocomplete-item.selected {
+    background: #49483e;
+}
+
+body.sflow-theme-monokai .sflow-ac-trigger {
+    color: #a6e22e;
+}
+
+body.sflow-theme-monokai .sflow-ac-trigger strong {
+    color: #f92672;
+}
+
+body.sflow-theme-nord .sflow-autocomplete-popup {
+    background: #2e3440;
+    border-color: #4c566a;
+}
+
+body.sflow-theme-nord .sflow-autocomplete-item {
+    border-bottom-color: #4c566a;
+}
+
+body.sflow-theme-nord .sflow-autocomplete-item.selected {
+    background: #434c5e;
+}
+
+body.sflow-theme-nord .sflow-ac-trigger {
+    color: #88c0d0;
+}
+
+body.sflow-theme-nord .sflow-ac-trigger strong {
+    color: #bf616a;
+}

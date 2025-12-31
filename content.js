@@ -1355,9 +1355,11 @@ function toggleRainbowBrackets() {
 
     if (rainbowBracketsEnabled) {
         injectRainbowStyles();
+        startRainbowObserver();
         console.log('ScriptFlow: Rainbow Brackets enabled');
     } else {
         removeRainbowStyles();
+        stopRainbowObserver();
         console.log('ScriptFlow: Rainbow Brackets disabled');
     }
 
@@ -1365,6 +1367,9 @@ function toggleRainbowBrackets() {
         chrome.storage.local.set({ rainbowBrackets: rainbowBracketsEnabled });
     } catch (e) { }
 }
+
+let rainbowObserver = null;
+let rainbowDebounceTimer = null;
 
 function injectRainbowStyles() {
     let styleEl = document.getElementById('sflow-rainbow-styles');
@@ -1374,18 +1379,116 @@ function injectRainbowStyles() {
         document.head.appendChild(styleEl);
     }
 
-    // Generate CSS for each bracket depth level
-    let css = '';
-    BRACKET_COLORS.forEach((color, i) => {
-        css += `
-            .sflow-bracket-${i} {
-                color: ${color} !important;
-                font-weight: 600;
+    // CSS-based rainbow colors for brackets
+    // Target Monaco's bracket highlighting and bracket characters
+    styleEl.textContent = `
+        /* Rainbow bracket colors */
+        .sflow-rb-0 { color: #FFD700 !important; } /* Gold */
+        .sflow-rb-1 { color: #DA70D6 !important; } /* Orchid */
+        .sflow-rb-2 { color: #87CEEB !important; } /* Sky Blue */
+        .sflow-rb-3 { color: #98FB98 !important; } /* Pale Green */
+        .sflow-rb-4 { color: #FFA07A !important; } /* Light Salmon */
+        .sflow-rb-5 { color: #DDA0DD !important; } /* Plum */
+        
+        /* Make brackets more visible */
+        .monaco-editor .bracket-match {
+            border: 1px solid #FFD700 !important;
+            background: rgba(255, 215, 0, 0.1) !important;
+        }
+        
+        /* Color brackets in view lines using attribute targeting */
+        .monaco-editor .view-line span:not([class*="mtk"]) {
+            /* Default styling */
+        }
+    `;
+
+    // Initial colorization
+    setTimeout(colorizeBrackets, 500);
+}
+
+function colorizeBrackets() {
+    if (!rainbowBracketsEnabled) return;
+
+    const viewLines = document.querySelectorAll('.monaco-editor .view-line');
+
+    viewLines.forEach(line => {
+        const spans = line.querySelectorAll('span');
+        let depth = { '(': 0, '[': 0, '{': 0 };
+
+        spans.forEach(span => {
+            const text = span.textContent;
+
+            // Check for brackets
+            if (text === '(' || text === ')') {
+                if (text === '(') {
+                    span.className = span.className.replace(/sflow-rb-\d/g, '');
+                    span.classList.add(`sflow-rb-${depth['('] % 6}`);
+                    depth['(']++;
+                } else {
+                    depth['('] = Math.max(0, depth['('] - 1);
+                    span.className = span.className.replace(/sflow-rb-\d/g, '');
+                    span.classList.add(`sflow-rb-${depth['('] % 6}`);
+                }
             }
-        `;
+            else if (text === '[' || text === ']') {
+                if (text === '[') {
+                    span.className = span.className.replace(/sflow-rb-\d/g, '');
+                    span.classList.add(`sflow-rb-${depth['['] % 6}`);
+                    depth['[']++;
+                } else {
+                    depth['['] = Math.max(0, depth['['] - 1);
+                    span.className = span.className.replace(/sflow-rb-\d/g, '');
+                    span.classList.add(`sflow-rb-${depth['['] % 6}`);
+                }
+            }
+            else if (text === '{' || text === '}') {
+                if (text === '{') {
+                    span.className = span.className.replace(/sflow-rb-\d/g, '');
+                    span.classList.add(`sflow-rb-${depth['{'] % 6}`);
+                    depth['{']++;
+                } else {
+                    depth['{'] = Math.max(0, depth['{'] - 1);
+                    span.className = span.className.replace(/sflow-rb-\d/g, '');
+                    span.classList.add(`sflow-rb-${depth['{'] % 6}`);
+                }
+            }
+        });
+    });
+}
+
+function startRainbowObserver() {
+    if (rainbowObserver) return;
+
+    const editorContainer = document.querySelector('.monaco-editor');
+    if (!editorContainer) {
+        setTimeout(startRainbowObserver, 1000);
+        return;
+    }
+
+    rainbowObserver = new MutationObserver(() => {
+        // Debounce the colorization
+        clearTimeout(rainbowDebounceTimer);
+        rainbowDebounceTimer = setTimeout(colorizeBrackets, 100);
     });
 
-    styleEl.textContent = css;
+    rainbowObserver.observe(editorContainer, {
+        childList: true,
+        subtree: true,
+        characterData: true
+    });
+}
+
+function stopRainbowObserver() {
+    if (rainbowObserver) {
+        rainbowObserver.disconnect();
+        rainbowObserver = null;
+    }
+    clearTimeout(rainbowDebounceTimer);
+
+    // Remove color classes from brackets
+    document.querySelectorAll('[class*="sflow-rb-"]').forEach(el => {
+        el.className = el.className.replace(/sflow-rb-\d/g, '').trim();
+    });
 }
 
 function removeRainbowStyles() {
@@ -1393,6 +1496,7 @@ function removeRainbowStyles() {
     if (styleEl) {
         styleEl.textContent = '';
     }
+    stopRainbowObserver();
 }
 
 // === CUSTOM SNIPPETS ===
@@ -1433,93 +1537,161 @@ const DEFAULT_SNIPPETS = {
 
 let customSnippets = { ...DEFAULT_SNIPPETS };
 let snippetManagerEnabled = true;
+let snippetPopup = null;
+let snippetBuffer = '';
+let selectedSnippetIndex = 0;
 
 function setupSnippetListener() {
-    document.addEventListener('keydown', handleSnippetExpand, true);
+    document.addEventListener('keydown', handleSnippetKeydown, true);
 }
 
-function handleSnippetExpand(e) {
+function handleSnippetKeydown(e) {
     if (!snippetManagerEnabled) return;
 
-    // Tab key triggers snippet expansion
-    if (e.key !== 'Tab') return;
-
-    // Get active element (should be monaco editor)
-    const activeEl = document.activeElement;
-    if (!activeEl || !activeEl.closest('.monaco-editor')) return;
-
-    // Check if we're in an input or textarea (Monaco uses different elements)
-    const editorTextArea = document.querySelector('.monaco-editor .inputarea');
-    if (!editorTextArea) return;
-
-    // Try to get current word before cursor using selection
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-
-    // For Monaco, we need to work with the view-line elements
-    // This is a simplified version - full implementation would need Monaco API
-
-    // Get the last typed word from any visible selected text
-    const range = selection.getRangeAt(0);
-    if (!range.collapsed) return; // Only expand when no selection
-
-    // Try to find the word before cursor by checking recent keystrokes
-    // This uses the snippetBuffer approach
-    const word = snippetBuffer.trim();
-
-    if (word && customSnippets[word]) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const snippet = customSnippets[word];
-        insertSnippet(snippet, word.length);
+    // Only work in Monaco editor
+    if (!e.target.closest('.monaco-editor')) {
+        hideSnippetPopup();
         snippetBuffer = '';
         return;
     }
+
+    // Handle popup navigation if visible
+    if (snippetPopup) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            e.stopPropagation();
+            navigateSnippetPopup(1);
+            return;
+        }
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            e.stopPropagation();
+            navigateSnippetPopup(-1);
+            return;
+        }
+        if (e.key === 'Enter' || e.key === 'Tab') {
+            e.preventDefault();
+            e.stopPropagation();
+            selectCurrentSnippet();
+            return;
+        }
+        if (e.key === 'Escape') {
+            hideSnippetPopup();
+            snippetBuffer = '';
+            return;
+        }
+    }
+
+    // Reset buffer on certain keys
+    if (['Enter', 'Escape', ' ', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        hideSnippetPopup();
+        snippetBuffer = '';
+        return;
+    }
+
+    // Backspace - remove last char
+    if (e.key === 'Backspace') {
+        snippetBuffer = snippetBuffer.slice(0, -1);
+        if (snippetBuffer.length >= 2) {
+            showSnippetPopup();
+        } else {
+            hideSnippetPopup();
+        }
+        return;
+    }
+
+    // Add character to buffer (only if it's a single char)
+    if (e.key.length === 1 && /[a-zA-Z0-9_]/.test(e.key)) {
+        snippetBuffer += e.key;
+
+        // Show popup after 2 characters
+        if (snippetBuffer.length >= 2) {
+            showSnippetPopup();
+        }
+    }
 }
 
-// Buffer to track recently typed characters
-let snippetBuffer = '';
-let snippetBufferTimeout = null;
+function showSnippetPopup() {
+    const matches = Object.entries(customSnippets)
+        .filter(([trigger]) => trigger.toLowerCase().startsWith(snippetBuffer.toLowerCase()))
+        .slice(0, 8); // Limit to 8 results
 
-function setupSnippetBuffer() {
-    document.addEventListener('keydown', (e) => {
-        if (!snippetManagerEnabled) return;
+    if (matches.length === 0) {
+        hideSnippetPopup();
+        return;
+    }
 
-        // Only track in Monaco editor
-        if (!e.target.closest('.monaco-editor')) {
-            snippetBuffer = '';
-            return;
-        }
+    // Get cursor position from Monaco
+    const cursor = document.querySelector('.monaco-editor .cursor');
+    if (!cursor) return;
 
-        // Reset buffer on certain keys
-        if (['Enter', 'Escape', ' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
-            snippetBuffer = '';
-            return;
-        }
+    const cursorRect = cursor.getBoundingClientRect();
 
-        // Backspace - remove last char
-        if (e.key === 'Backspace') {
-            snippetBuffer = snippetBuffer.slice(0, -1);
-            return;
-        }
+    // Create or update popup
+    if (!snippetPopup) {
+        snippetPopup = document.createElement('div');
+        snippetPopup.id = 'sflow-snippet-popup';
+        snippetPopup.className = 'sflow-autocomplete-popup';
+        document.body.appendChild(snippetPopup);
+    }
 
-        // Tab - handled by snippetExpand
-        if (e.key === 'Tab') {
-            return;
-        }
+    selectedSnippetIndex = 0;
 
-        // Add character to buffer (only if it's a single char)
-        if (e.key.length === 1 && /[a-zA-Z0-9_]/.test(e.key)) {
-            snippetBuffer += e.key;
+    snippetPopup.innerHTML = matches.map(([trigger, code], i) => `
+        <div class="sflow-autocomplete-item${i === 0 ? ' selected' : ''}" data-index="${i}" data-trigger="${trigger}">
+            <span class="sflow-ac-trigger">${highlightMatch(trigger, snippetBuffer)}</span>
+            <span class="sflow-ac-preview">${escapeHtml(code.split('\\n')[0].substring(0, 35))}${code.length > 35 ? '...' : ''}</span>
+        </div>
+    `).join('');
 
-            // Clear buffer after 3 seconds of no typing
-            clearTimeout(snippetBufferTimeout);
-            snippetBufferTimeout = setTimeout(() => {
-                snippetBuffer = '';
-            }, 3000);
-        }
-    }, true);
+    // Position popup below cursor
+    snippetPopup.style.display = 'block';
+    snippetPopup.style.left = `${cursorRect.left}px`;
+    snippetPopup.style.top = `${cursorRect.bottom + 4}px`;
+
+    // Add click handlers
+    snippetPopup.querySelectorAll('.sflow-autocomplete-item').forEach(item => {
+        item.addEventListener('click', () => {
+            selectedSnippetIndex = parseInt(item.dataset.index);
+            selectCurrentSnippet();
+        });
+    });
+}
+
+function highlightMatch(trigger, buffer) {
+    const matchLen = buffer.length;
+    return `<strong>${trigger.substring(0, matchLen)}</strong>${trigger.substring(matchLen)}`;
+}
+
+function hideSnippetPopup() {
+    if (snippetPopup) {
+        snippetPopup.style.display = 'none';
+    }
+}
+
+function navigateSnippetPopup(direction) {
+    const items = snippetPopup.querySelectorAll('.sflow-autocomplete-item');
+    if (items.length === 0) return;
+
+    items[selectedSnippetIndex].classList.remove('selected');
+    selectedSnippetIndex = (selectedSnippetIndex + direction + items.length) % items.length;
+    items[selectedSnippetIndex].classList.add('selected');
+    items[selectedSnippetIndex].scrollIntoView({ block: 'nearest' });
+}
+
+function selectCurrentSnippet() {
+    const items = snippetPopup.querySelectorAll('.sflow-autocomplete-item');
+    if (items.length === 0 || selectedSnippetIndex >= items.length) return;
+
+    const trigger = items[selectedSnippetIndex].dataset.trigger;
+    const snippet = customSnippets[trigger];
+
+    if (snippet) {
+        insertSnippet(snippet, snippetBuffer.length);
+    }
+
+    hideSnippetPopup();
+    snippetBuffer = '';
 }
 
 function insertSnippet(snippet, deleteChars) {
@@ -1530,20 +1702,15 @@ function insertSnippet(snippet, deleteChars) {
 
     // Process snippet - find first $1 placeholder
     let processedSnippet = snippet;
-    let cursorOffset = 0;
 
-    // Find first placeholder position
-    const placeholderMatch = processedSnippet.match(/\$1/);
-    if (placeholderMatch) {
-        cursorOffset = placeholderMatch.index;
-        // Remove all placeholders for now (simplified)
-        processedSnippet = processedSnippet.replace(/\$\d/g, '');
-    }
+    // Remove all placeholders for now (simplified)
+    processedSnippet = processedSnippet.replace(/\$\d/g, '');
 
     // Insert the snippet text
     document.execCommand('insertText', false, processedSnippet);
 
     console.log('ScriptFlow: Snippet expanded');
+    hideSnippetPopup();
 }
 
 function openSnippetManager() {
@@ -1635,7 +1802,6 @@ function escapeHtml(str) {
 
 // Initialize snippet system
 function initSnippets() {
-    setupSnippetBuffer();
     setupSnippetListener();
     console.log('ScriptFlow: Snippet system initialized with', Object.keys(customSnippets).length, 'snippets');
 }

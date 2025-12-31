@@ -3,6 +3,13 @@ class UIManager {
         this.modal = null;
     }
 
+    // XSS Prevention: Sanitize HTML content
+    sanitizeHTML(str) {
+        const temp = document.createElement('div');
+        temp.textContent = str;
+        return temp.innerHTML;
+    }
+
     createModal(title, contentHtml) {
         if (this.modal) {
             this.closeModal();
@@ -15,7 +22,7 @@ class UIManager {
         overlay.innerHTML = `
             <div class="sflow-modal">
                 <div class="sflow-modal-header">
-                    <h2>${title}</h2>
+                    <h2>${this.sanitizeHTML(title)}</h2>
                     <button class="sflow-close-btn">&times;</button>
                 </div>
                 <div class="sflow-modal-body">
@@ -88,8 +95,8 @@ class UIManager {
                         <tbody>
                             ${displayTriggers.map(t => `
                             <tr style="border-bottom: 1px solid #333;">
-                                <td style="padding: 10px;">${t.function}</td>
-                                <td style="padding: 10px;">${t.event}</td>
+                                <td style="padding: 10px;">${this.sanitizeHTML(t.function)}</td>
+                                <td style="padding: 10px;">${this.sanitizeHTML(t.event)}</td>
                                 <td style="padding: 10px;">
                                     <button class="sflow-btn" disabled style="background: #555; cursor: not-allowed; padding: 2px 8px; font-size: 12px;">Manage</button>
                                 </td>
@@ -101,23 +108,35 @@ class UIManager {
 
                 <div id="sflow-tab-generator" class="sflow-tab-content" style="display: none;">
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px;">FunctionName</label>
-                        <input type="text" id="gen-func-name" class="sflow-input" value="myFunction" style="width: 100%; background: #282a36; color: white; border: 1px solid #444; padding: 5px;">
+                        <label style="display: block; margin-bottom: 5px;">Function Name</label>
+                        <input type="text" id="gen-func-name" class="sflow-input" value="myFunction" style="width: 100%; background: #282a36; color: white; border: 1px solid #444; padding: 8px; border-radius: 4px;">
                     </div>
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px;">Event Type</label>
-                        <select id="gen-event-type" class="sflow-input" style="width: 100%; background: #282a36; color: white; border: 1px solid #444; padding: 5px;">
+                        <select id="gen-event-type" class="sflow-input" style="width: 100%; background: #282a36; color: white; border: 1px solid #444; padding: 8px; border-radius: 4px;">
                             <option value="Time-driven">Time-driven (Clock)</option>
                             <option value="Spreadsheet">Spreadsheet (onEdit)</option>
+                            <option value="Document">Document (onOpen)</option>
+                            <option value="Form">Form (onSubmit)</option>
+                        </select>
+                    </div>
+                    <div id="interval-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">Interval</label>
+                        <select id="gen-interval" class="sflow-input" style="width: 100%; background: #282a36; color: white; border: 1px solid #444; padding: 8px; border-radius: 4px;">
+                            <option value="everyMinutes">Every 10 Minutes</option>
+                            <option value="everyHours">Every Hour</option>
+                            <option value="everyDays">Every Day</option>
+                            <option value="everyWeeks">Every Week</option>
+                            <option value="atHour">Daily at 9 AM</option>
                         </select>
                     </div>
                     
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px;">Snippet</label>
-                        <textarea id="gen-output" style="width: 100%; height: 100px; background: #282a36; color: #50fa7b; font-family: monospace; border: 1px solid #444; padding: 5px;"></textarea>
+                        <label style="display: block; margin-bottom: 5px;">Generated Snippet</label>
+                        <textarea id="gen-output" readonly style="width: 100%; height: 120px; background: #1e1e2e; color: #50fa7b; font-family: 'Monaco', 'Consolas', monospace; border: 1px solid #444; padding: 10px; border-radius: 4px; resize: vertical;"></textarea>
                     </div>
                     
-                    <button id="sflow-copy-snippet" class="sflow-btn">Copy Snippet</button>
+                    <button id="sflow-copy-snippet" class="sflow-btn" style="width: 100%; background: #bd93f9; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: 600;">Copy Snippet</button>
                 </div>
             </div>
         `;
@@ -161,15 +180,22 @@ class UIManager {
         // Generator Logic
         const funcInput = container.querySelector('#gen-func-name');
         const typeSelect = container.querySelector('#gen-event-type');
+        const intervalSelect = container.querySelector('#gen-interval');
+        const intervalGroup = container.querySelector('#interval-group');
         const output = container.querySelector('#gen-output');
         const copyBtn = container.querySelector('#sflow-copy-snippet');
 
         const updateSnippet = () => {
             if (window.triggerService) {
+                // Show/hide interval selector based on trigger type
+                if (intervalGroup) {
+                    intervalGroup.style.display = typeSelect.value === 'Time-driven' ? 'block' : 'none';
+                }
+
                 output.value = window.triggerService.generateTriggerSnippet(
                     funcInput.value,
                     typeSelect.value,
-                    'Minutes(10)' // Default
+                    intervalSelect ? intervalSelect.value : 'everyMinutes'
                 );
             }
         };
@@ -177,15 +203,32 @@ class UIManager {
         if (funcInput && typeSelect) {
             funcInput.addEventListener('input', updateSnippet);
             typeSelect.addEventListener('change', updateSnippet);
+            if (intervalSelect) {
+                intervalSelect.addEventListener('change', updateSnippet);
+            }
             updateSnippet(); // Initial
         }
 
         if (copyBtn) {
-            copyBtn.addEventListener('click', () => {
-                output.select();
-                document.execCommand('copy');
-                copyBtn.textContent = 'Copied!';
-                setTimeout(() => copyBtn.textContent = 'Copy Snippet', 2000);
+            copyBtn.addEventListener('click', async () => {
+                const text = output.value;
+                try {
+                    // Modern clipboard API
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(text);
+                    } else {
+                        // Fallback for older browsers
+                        output.select();
+                        output.setSelectionRange(0, 99999); // For mobile
+                        document.execCommand('copy');
+                    }
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => copyBtn.textContent = 'Copy Snippet', 2000);
+                } catch (err) {
+                    console.error('ScriptFlow: Copy failed', err);
+                    copyBtn.textContent = 'Copy Failed';
+                    setTimeout(() => copyBtn.textContent = 'Copy Snippet', 2000);
+                }
             });
         }
     }

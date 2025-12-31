@@ -2,6 +2,43 @@
 
 console.log('ScriptFlow: Content script loaded');
 
+// === THEME DEFINITIONS ===
+const THEMES = {
+    default: {
+        accent: '#1a73e8',
+        fgPrimary: '#202124',
+        fgSecondary: '#5f6368',
+        bgPrimary: '#ffffff',
+        border: '#dadce0'
+    },
+    dracula: {
+        accent: '#BD93F9',
+        fgPrimary: '#F8F8F2',
+        fgSecondary: '#6272A4',
+        bgPrimary: '#282A36',
+        border: '#44475A'
+    },
+    monokai: {
+        accent: '#a6e22e',
+        fgPrimary: '#f8f8f2',
+        fgSecondary: '#75715e',
+        bgPrimary: '#272822',
+        border: '#49483e'
+    },
+    nord: {
+        accent: '#88c0d0',
+        fgPrimary: '#eceff4',
+        fgSecondary: '#e5e9f0',
+        bgPrimary: '#2e3440',
+        border: '#4c566a'
+    }
+};
+
+// === CLEANUP TRACKING ===
+let dashboardFixerInterval = null;
+let toolbarObserver = null;
+let settingsObserver = null;
+
 const SVGs = {
     moon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
     sun: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
@@ -33,8 +70,11 @@ async function init() {
     // but the observer is safe enough.
     waitForToolbarAndInject();
 
-    // Start Dashboard Fixer Loop
-    setInterval(fixDashboardTheme, 2000);
+    // Start Dashboard Fixer Loop with cleanup tracking
+    if (dashboardFixerInterval) {
+        clearInterval(dashboardFixerInterval);
+    }
+    dashboardFixerInterval = setInterval(fixDashboardTheme, 2000);
 }
 
 // === JS-BASED THEME ENFORCER (DEEP SCAN) ===
@@ -564,7 +604,18 @@ function waitForToolbarAndInject() {
         }
     });
 
+    // Store reference for potential cleanup
+    toolbarObserver = observer;
     observer.observe(document.body, { childList: true, subtree: true });
+
+    // Safety timeout: disconnect observer after 30 seconds if toolbar not found
+    setTimeout(() => {
+        if (toolbarObserver && !document.getElementById('sflow-toolbar')) {
+            console.log('ScriptFlow: Toolbar observer timeout - disconnecting');
+            toolbarObserver.disconnect();
+            toolbarObserver = null;
+        }
+    }, 30000);
 }
 
 function injectToolbarInline(container, referenceNode) {

@@ -53,20 +53,49 @@ class TriggerService {
     }
 
     generateTriggerSnippet(functionName, type, interval) {
+        // Sanitize function name to prevent code injection
+        const safeFuncName = functionName.replace(/[^a-zA-Z0-9_]/g, '');
+
         if (type === 'Time-driven') {
+            // Map interval values to proper Apps Script methods
+            const intervalMethods = {
+                'everyMinutes': 'everyMinutes(10)',
+                'everyHours': 'everyHours(1)',
+                'everyDays': 'everyDays(1)',
+                'everyWeeks': 'everyWeeks(1)',
+                'atHour': 'atHour(9).everyDays(1)'
+            };
+            const method = intervalMethods[interval] || 'everyMinutes(10)';
+
             return `
-ScriptApp.newTrigger('${functionName}')
+// Time-driven trigger for ${safeFuncName}
+ScriptApp.newTrigger('${safeFuncName}')
   .timeBased()
-  .every${interval}
+  .${method}
   .create();`;
         } else if (type === 'Spreadsheet') {
             return `
-ScriptApp.newTrigger('${functionName}')
+// Spreadsheet trigger for ${safeFuncName}
+ScriptApp.newTrigger('${safeFuncName}')
   .forSpreadsheet(SpreadsheetApp.getActive())
   .onEdit()
   .create();`;
+        } else if (type === 'Document') {
+            return `
+// Document trigger for ${safeFuncName}
+ScriptApp.newTrigger('${safeFuncName}')
+  .forDocument(DocumentApp.getActiveDocument())
+  .onOpen()
+  .create();`;
+        } else if (type === 'Form') {
+            return `
+// Form trigger for ${safeFuncName}
+ScriptApp.newTrigger('${safeFuncName}')
+  .forForm(FormApp.getActiveForm())
+  .onFormSubmit()
+  .create();`;
         }
-        return '// Unknown Trigger Type';
+        return '// Unknown Trigger Type - please select a valid type';
     }
 }
 

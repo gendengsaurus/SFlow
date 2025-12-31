@@ -5,14 +5,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const loveBtn = document.getElementById('love-btn');
     const supportLinks = document.getElementById('support-links');
 
-    // Load Initial State
+    // Default theme constant for consistency
+    const DEFAULT_DARK_THEME = 'dracula';
+
+    // Load Initial State with error handling
     chrome.storage.local.get(['theme', 'isEnabled'], (result) => {
+        // Handle potential storage errors
+        if (chrome.runtime.lastError) {
+            console.error('ScriptFlow: Storage error', chrome.runtime.lastError);
+            // Apply defaults on error
+            themeSelect.value = DEFAULT_DARK_THEME;
+            themeToggle.checked = true;
+            themeSelect.disabled = false;
+            return;
+        }
+
         // Theme defaults to 'dracula' if not set
-        const currentTheme = result.theme || 'dracula';
+        const currentTheme = result.theme || DEFAULT_DARK_THEME;
         const isEnabled = result.isEnabled !== false; // Default true
 
-        // Update UI
-        themeSelect.value = currentTheme === 'default' ? 'dracula' : currentTheme;
+        // Update UI - Fixed logic: show actual current theme in dropdown
+        themeSelect.value = currentTheme !== 'default' ? currentTheme : DEFAULT_DARK_THEME;
         themeToggle.checked = isEnabled && currentTheme !== 'default';
 
         // Disable select if toggled off
@@ -37,18 +50,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Support Button Handler
+    // Support Button Handler with accessibility
     loveBtn.addEventListener('click', () => {
-        supportLinks.classList.toggle('hidden');
-        // Optional: Animate chevron or icon if desired
+        const isHidden = supportLinks.classList.toggle('hidden');
+        loveBtn.setAttribute('aria-expanded', !isHidden);
     });
 
-    // Helper to save state
+    // Keyboard support for support button
+    loveBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            loveBtn.click();
+        }
+    });
+
+    // Helper to save state with error handling
     function saveState(theme, isEnabled) {
         chrome.storage.local.set({
             theme: theme,
             isEnabled: isEnabled
         }, () => {
+            if (chrome.runtime.lastError) {
+                console.error('ScriptFlow: Failed to save settings', chrome.runtime.lastError);
+                return;
+            }
             console.log('ScriptFlow: Settings saved', { theme, isEnabled });
         });
     }

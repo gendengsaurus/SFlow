@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScriptFlow Settings</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-section">
+                <img src="icons/icon48.png" alt="ScriptFlow Logo" class="logo-icon-img" width="24" height="24">
+                <span class="title">ScriptFlow</span>
+            </div>
+            <!-- Dark Mode Toggle -->
+            <label class="switch" title="Toggle Extension">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider round"></span>
+            </label>
+        </header>
+
+        <div class="divider"></div>
+
+        <!-- Settings -->
+        <div class="settings-group">
+            <label for="theme-select" class="label-text">Editor Theme</label>
+            <div class="select-wrapper">
+                <select id="theme-select">
+                    <option value="default">Default</option>
+                    <option value="dracula">Dracula</option>
+                    <option value="monokai">Monokai</option>
+                    <option value="nord">Nord</option>
+                </select>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M6 9l6 6 6-6" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Support Section -->
+        <div class="support-section">
+            <button id="love-btn" class="love-btn" title="Support Development">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF5555" class="heart-icon">
+                    <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                    </path>
+                </svg>
+                <span class="support-text">Show Support</span>
+            </button>
+
+            <div id="support-links" class="support-links hidden">
+                <a href="https://ko-fi.com/gendengsaurus" target="_blank" class="support-link kofi">
+                    <img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Ko-Fi" class="support-icon">
+                    <span>Ko-Fi</span>
+                </a>
+                <a href="https://trakteer.id/gendengsaurus/gift" target="_blank" class="support-link trakteer">
+                    <img src="https://cdn.trakteer.id/images/embed/trbtn-icon.png" alt="Trakteer" class="support-icon">
+                    <span>Trakteer</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span class="version">v1.0.0</span>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+
+</html>

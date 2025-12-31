@@ -1,0 +1,824 @@
+/* --- SFLOW TOOLBAR --- */
+.sflow-toolbar-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 12px;
+    height: 100%;
+    font-family: 'Roboto', sans-serif;
+    border: none !important;
+    /* Ensure no border artifacts */
+}
+
+/* Icons Base */
+.sflow-icon-btn {
+    background: transparent;
+    border: none;
+    color: #5f6368;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+}
+
+.sflow-icon-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: #202124;
+}
+
+/* Force all SFlow icons to use Stroke, NO Fill (Fixes white circle issue) */
+body[class*="sflow-theme-"] .sflow-toolbar-inline .sflow-icon-btn svg,
+body[class*="sflow-theme-"] .sflow-toolbar-inline .sflow-icon-btn svg * {
+    fill: none !important;
+    stroke: var(--fg-primary) !important;
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+/* Explicitly transparent background for trigger icon */
+.sflow-trigger-icon {
+    background: transparent !important;
+}
+
+/* Select Dropdown */
+#sflow-theme-select {
+    appearance: none;
+    background-color: transparent;
+    border: 1px solid transparent;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #5f6368;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: center;
+}
+
+#sflow-theme-select:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: #202124;
+}
+
+/* Modal */
+.sflow-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sflow-modal {
+    background: #fff;
+    color: #333;
+    width: 600px;
+    max-width: 90%;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+
+.sflow-modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sflow-modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.sflow-close-btn {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.sflow-modal-body {
+    padding: 20px;
+    overflow-y: auto;
+}
+
+
+/* =========================================
+   THEME VARIABLES & DEFINITIONS
+   ========================================= */
+
+/* Dark Mode Common Overrides (Fallback) */
+body[class*="sflow-theme-"] {
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252526;
+    --fg-primary: #d4d4d4;
+    --fg-secondary: #cccccc;
+    --border-color: #3c3c3c;
+    --accent-color: #007acc;
+    --bg-selection: #264f78;
+
+    /* Default syntax colors (VS Code Dark+) */
+    --syntax-foreground: #d4d4d4;
+    --syntax-variable: #9cdcfe;
+    --syntax-comment: #6a9955;
+    --syntax-keyword: #569cd6;
+    --syntax-string: #ce9178;
+    --syntax-function: #dcdcaa;
+    --syntax-number: #b5cea8;
+    --syntax-type: #4ec9b0;
+    --syntax-property: #9cdcfe;
+    --syntax-operator: #d4d4d4;
+    --syntax-constant: #4fc1ff;
+}
+
+/* =========================================
+   1. DRACULA THEME (Official Complete UI)
+   https://draculatheme.com
+   ========================================= */
+body.sflow-theme-dracula {
+    /* === CORE COLORS === */
+    --bg-primary: #282A36;
+    /* Main Background */
+    --bg-dark: #191A21;
+    /* Background Dark */
+    --bg-secondary: #21222C;
+    /* Surface / Cards */
+    --bg-hover: #2A2B36;
+    /* Surface Hover */
+    --border-color: #44475A;
+    /* Border / Divider */
+    --bg-selection: #44475A;
+    /* Selection / Current Line */
+
+    /* === TEXT COLORS === */
+    --fg-primary: #F8F8F2;
+    /* Text Primary */
+    --fg-secondary: #6272A4;
+    /* Text Secondary / Muted */
+    --fg-disabled: #44475A;
+    /* Text Disabled */
+
+    /* === ACCENT COLORS === */
+    --accent-color: #BD93F9;
+    /* Primary (Purple) */
+    --accent-secondary: #FF79C6;
+    /* Secondary (Pink) */
+    --color-info: #8BE9FD;
+    /* Info (Cyan) */
+    --color-success: #50FA7B;
+    /* Success (Green) */
+    --color-warning: #F1FA8C;
+    /* Warning (Yellow) */
+    --color-danger: #FF5555;
+    /* Danger (Red) */
+    --color-highlight: #FFB86C;
+    /* Highlight (Orange) */
+
+    /* === INTERACTIVE STATES === */
+    --hover-overlay: #44475A88;
+    --active-overlay: #44475ACC;
+    --focus-ring: #BD93F9;
+
+    /* === SYNTAX COLORS === */
+    --syntax-foreground: #F8F8F2;
+    /* Main text */
+    --syntax-comment: #6272A4;
+    /* Comment - blue-grey */
+    --syntax-keyword: #FF79C6;
+    /* Pink - keywords */
+    --syntax-string: #50FA7B;
+    /* Green - strings */
+    --syntax-function: #8BE9FD;
+    /* Cyan - function, class */
+    --syntax-number: #BD93F9;
+    /* Purple - number, boolean */
+    --syntax-variable: #F1FA8C;
+    /* Yellow - variable */
+    --syntax-constant: #FFB86C;
+    /* Orange - constant */
+    --syntax-type: #8BE9FD;
+    /* Cyan - class/type */
+    --syntax-operator: #FF79C6;
+    /* Pink - operators */
+    --syntax-error: #FF5555;
+    /* Red - error */
+}
+
+/* =========================================
+   2. MONOKAI THEME (Official)
+   Based on Sublime Text Monokai
+   ========================================= */
+body.sflow-theme-monokai {
+    /* === CORE COLORS === */
+    --bg-primary: #272822;
+    /* Background */
+    --bg-dark: #1e1f1c;
+    /* Background Dark */
+    --bg-secondary: #1e1f1c;
+    /* Surface / Sidebar */
+    --bg-hover: #3e3d32;
+    /* Surface Hover */
+    --border-color: #49483e;
+    /* Border */
+    --bg-selection: #49483e;
+    /* Selection */
+
+    /* === TEXT COLORS === */
+    --fg-primary: #f8f8f2;
+    /* Text Primary */
+    --fg-secondary: #75715e;
+    /* Text Secondary */
+    --fg-disabled: #49483e;
+    /* Text Disabled */
+
+    /* === ACCENT COLORS === */
+    --accent-color: #a6e22e;
+    /* Green accent */
+    --accent-secondary: #f92672;
+    /* Pink */
+    --color-info: #66d9ef;
+    /* Blue */
+    --color-success: #a6e22e;
+    /* Green */
+    --color-warning: #e6db74;
+    /* Yellow */
+    --color-danger: #f92672;
+    /* Red/Pink */
+    --color-highlight: #fd971f;
+    /* Orange */
+
+    /* === INTERACTIVE STATES === */
+    --hover-overlay: #49483e88;
+    --active-overlay: #49483ecc;
+    --focus-ring: #a6e22e;
+
+    /* === SYNTAX COLORS - Official Monokai === */
+    --syntax-foreground: #F8F8F2;
+    --syntax-variable: #F8F8F2;
+    --syntax-comment: #75715E;
+    /* Official Monokai comment */
+    --syntax-keyword: #F92672;
+    /* Pink/Red */
+    --syntax-string: #E6DB74;
+    /* Yellow */
+    --syntax-function: #A6E22E;
+    /* Green */
+    --syntax-number: #AE81FF;
+    /* Purple */
+    --syntax-type: #A6E22E;
+    /* Green (Class/Type) */
+    --syntax-constant: #66D9EF;
+    /* Cyan */
+    --syntax-property: #A6E22E;
+    /* Green */
+    --syntax-operator: #F92672;
+    /* Pink/Red */
+    --syntax-error: #F92672;
+    /* Pink/Red */
+}
+
+/* =========================================
+   3. NORD THEME (Official)
+   https://www.nordtheme.com
+   ========================================= */
+body.sflow-theme-nord {
+    /* === CORE COLORS - Polar Night === */
+    --bg-primary: #2e3440;
+    /* nord0 */
+    --bg-dark: #242933;
+    /* Darker than nord0 */
+    --bg-secondary: #3b4252;
+    /* nord1 */
+    --bg-hover: #434c5e;
+    /* nord2 */
+    --border-color: #4c566a;
+    /* nord3 */
+    --bg-selection: #434c5e;
+    /* nord2 */
+
+    /* === TEXT COLORS - Snow Storm === */
+    --fg-primary: #eceff4;
+    /* nord6 */
+    --fg-secondary: #e5e9f0;
+    /* nord5 */
+    --fg-disabled: #4c566a;
+    /* nord3 */
+
+    /* === ACCENT COLORS - Frost & Aurora === */
+    --accent-color: #88c0d0;
+    /* nord8 Frost */
+    --accent-secondary: #81a1c1;
+    /* nord9 */
+    --color-info: #88c0d0;
+    /* nord8 */
+    --color-success: #a3be8c;
+    /* nord14 Aurora Green */
+    --color-warning: #ebcb8b;
+    /* nord13 Aurora Yellow */
+    --color-danger: #bf616a;
+    /* nord11 Aurora Red */
+    --color-highlight: #d08770;
+    /* nord12 Aurora Orange */
+
+    /* === INTERACTIVE STATES === */
+    --hover-overlay: #434c5e88;
+    --active-overlay: #434c5ecc;
+    --focus-ring: #88c0d0;
+
+    /* === SYNTAX COLORS - Official Nord === */
+    --syntax-foreground: #D8DEE9;
+    /* nord4 */
+    --syntax-variable: #D8DEE9;
+    /* nord4 */
+    --syntax-comment: #616E88;
+    /* Dimmed */
+    --syntax-keyword: #81A1C1;
+    /* nord9 */
+    --syntax-string: #A3BE8C;
+    /* nord14 Aurora Green */
+    --syntax-function: #88C0D0;
+    /* nord8 Frost */
+    --syntax-number: #B48EAD;
+    /* nord15 Aurora Purple */
+    --syntax-type: #8FBCBB;
+    /* nord7 */
+    --syntax-constant: #EBCB8B;
+    /* nord13 Aurora Yellow */
+    --syntax-property: #D8DEE9;
+    /* nord4 */
+    --syntax-operator: #81A1C1;
+    /* nord9 */
+    --syntax-error: #BF616A;
+    /* nord11 Aurora Red */
+}
+
+
+/* =========================================
+   APPLICATION OF VARIABLES (GLOBAL)
+   ========================================= */
+
+body[class*="sflow-theme-"] {
+    background-color: var(--bg-primary) !important;
+    color: var(--fg-primary) !important;
+}
+
+/* Toolbar Buttons & Text */
+body[class*="sflow-theme-"] .sflow-icon-btn {
+    color: var(--fg-primary);
+}
+
+body[class*="sflow-theme-"] #sflow-theme-select {
+    color: var(--fg-primary);
+}
+
+body[class*="sflow-theme-"] .sflow-divider-vertical {
+    background: var(--border-color);
+}
+
+/* Sidebar & Structure Overrides */
+body[class*="sflow-theme-"] div[role="navigation"],
+body[class*="sflow-theme-"] .goog-splitpane-first-container,
+body[class*="sflow-theme-"] .layout-vertical>.layout-horizontal:first-child {
+    background-color: var(--bg-secondary) !important;
+    border-right: 1px solid var(--border-color) !important;
+}
+
+/* ===========================================
+   SIDEBAR TEXT - FORCE ALL TEXT WHITE
+   =========================================== */
+
+/* Target ALL text in sidebar area - aggressive wildcard */
+body[class*="sflow-theme-"] div[role="navigation"] *,
+body[class*="sflow-theme-"] .goog-splitpane-first-container *,
+body[class*="sflow-theme-"] .layout-vertical>div:first-child * {
+    color: var(--fg-primary) !important;
+    opacity: 1 !important;
+}
+
+/* Specifically target sidebar headers (Files, Libraries, Services) */
+body[class*="sflow-theme-"] .feature-header,
+body[class*="sflow-theme-"] .lb-header,
+body[class*="sflow-theme-"] [class*="header"],
+body[class*="sflow-theme-"] [class*="section-header"],
+body[class*="sflow-theme-"] [class*="panel-header"] {
+    background-color: var(--bg-secondary) !important;
+    color: var(--fg-primary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+body[class*="sflow-theme-"] .feature-header *,
+body[class*="sflow-theme-"] .lb-header *,
+body[class*="sflow-theme-"] [class*="header"] span,
+body[class*="sflow-theme-"] [class*="header"] div {
+    color: var(--fg-primary) !important;
+    opacity: 1 !important;
+}
+
+/* Section titles like "Files", "Libraries", "Services" - specific GAS class */
+body[class*="sflow-theme-"] .y2Opbf,
+body[class*="sflow-theme-"] [class*="y2Opbf"],
+body[class*="sflow-theme-"] [class*="section"]>span,
+body[class*="sflow-theme-"] [class*="section"]>div,
+body[class*="sflow-theme-"] [class*="title"],
+body[class*="sflow-theme-"] [class*="label"] {
+    color: var(--fg-primary) !important;
+    opacity: 1 !important;
+}
+
+/* Navigation/Sidebar Items */
+body[class*="sflow-theme-"] div[role="treeitem"],
+body[class*="sflow-theme-"] .lb-name,
+body[class*="sflow-theme-"] .lb-item {
+    color: var(--fg-primary) !important;
+    opacity: 1 !important;
+}
+
+/* ===========================================
+   SIDEBAR SELECTION - CLEAN STYLING
+   =========================================== */
+
+/* Selected Item - Theme compliant (GAS-specific classes) */
+body[class*="sflow-theme-"] div[role="treeitem"][aria-selected="true"],
+body[class*="sflow-theme-"] div[role="treeitem"][aria-selected="true"] *,
+body[class*="sflow-theme-"] .lb-item[aria-selected="true"],
+body[class*="sflow-theme-"] .lb-item[aria-selected="true"] *,
+body[class*="sflow-theme-"] .StrnGf-VfPpkd-rymPhb-ibnC6b,
+body[class*="sflow-theme-"] .lMUT6c,
+body[class*="sflow-theme-"] .Ftje6d,
+body[class*="sflow-theme-"] .UeVsd,
+body[class*="sflow-theme-"] [class*="ibnC6b"] {
+    background-color: var(--bg-selection) !important;
+    color: var(--fg-primary) !important;
+}
+
+/* Left nav icon selection (hcgnWc = selected state) - aggressive override */
+body[class*="sflow-theme-"] .hcgnWc,
+body[class*="sflow-theme-"] .hcgnWc *,
+body[class*="sflow-theme-"] .kcW8jf.hcgnWc,
+body[class*="sflow-theme-"] .kcW8jf.hcgnWc *,
+body[class*="sflow-theme-"] .kcW8jf.hcgnWc::before,
+body[class*="sflow-theme-"] .kcW8jf.hcgnWc::after,
+body[class*="sflow-theme-"] .hcgnWc .mtgyif,
+body[class*="sflow-theme-"] .hcgnWc .mtgyif::before,
+body[class*="sflow-theme-"] .hcgnWc .mtgyif::after {
+    background-color: var(--bg-selection) !important;
+    background: var(--bg-selection) !important;
+}
+
+/* Make selection circular */
+body[class*="sflow-theme-"] .hcgnWc .mtgyif {
+    border-radius: 50% !important;
+}
+
+/* Ensure ALL left nav icons are white */
+body[class*="sflow-theme-"] .kcW8jf .google-material-icons,
+body[class*="sflow-theme-"] .mtgyif i,
+body[class*="sflow-theme-"] .hcgnWc i {
+    color: var(--fg-primary) !important;
+}
+
+/* Left accent border for selected item */
+body[class*="sflow-theme-"] div[role="treeitem"][aria-selected="true"],
+body[class*="sflow-theme-"] .lMUT6c {
+    border-left: 3px solid var(--accent-color) !important;
+    padding-left: 5px;
+}
+
+/* Hover State - uses hover overlay */
+body[class*="sflow-theme-"] div[role="treeitem"]:hover,
+body[class*="sflow-theme-"] .lb-item:hover {
+    background-color: var(--hover-overlay, rgba(68, 71, 90, 0.5)) !important;
+}
+
+/* Icons in sidebar - including + buttons */
+body[class*="sflow-theme-"] div[role="treeitem"] svg,
+body[class*="sflow-theme-"] .lb-icon,
+body[class*="sflow-theme-"] [class*="header"] svg,
+body[class*="sflow-theme-"] [class*="header"] button,
+body[class*="sflow-theme-"] .y2Opbf+button,
+body[class*="sflow-theme-"] button[aria-label*="add"],
+body[class*="sflow-theme-"] button[aria-label*="Add"] {
+    fill: var(--fg-primary) !important;
+    color: var(--fg-primary) !important;
+    opacity: 0.8;
+}
+
+/* ===========================================
+   TOP TOOLBAR
+   =========================================== */
+
+body[class*="sflow-theme-"] div[role="banner"],
+body[class*="sflow-theme-"] header {
+    background-color: var(--bg-secondary) !important;
+    color: var(--fg-primary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Force ALL toolbar elements to be white */
+body[class*="sflow-theme-"] div[role="banner"] *,
+body[class*="sflow-theme-"] header *,
+body[class*="sflow-theme-"] div[role="toolbar"] *,
+body[class*="sflow-theme-"] [class*="toolbar"] * {
+    color: var(--fg-primary) !important;
+    fill: var(--fg-primary) !important;
+}
+
+/* Specifically target Run, Debug, Execution log buttons */
+body[class*="sflow-theme-"] button[aria-label],
+body[class*="sflow-theme-"] div[role="button"],
+body[class*="sflow-theme-"] [role="menuitem"] {
+    color: var(--fg-primary) !important;
+}
+
+/* Icons in toolbar */
+body[class*="sflow-theme-"] div[role="banner"] svg,
+body[class*="sflow-theme-"] header svg,
+body[class*="sflow-theme-"] div[role="toolbar"] svg {
+    fill: var(--fg-primary) !important;
+    color: var(--fg-primary) !important;
+}
+
+/* Toolbar button hover - use hover overlay */
+body[class*="sflow-theme-"] .sflow-icon-btn:hover,
+body[class*="sflow-theme-"] div[role="button"]:hover {
+    background-color: var(--hover-overlay, rgba(68, 71, 90, 0.5)) !important;
+}
+
+/* Focus ring for buttons */
+body[class*="sflow-theme-"] button:focus,
+body[class*="sflow-theme-"] .sflow-icon-btn:focus {
+    outline: 2px solid var(--focus-ring, var(--accent-color)) !important;
+    outline-offset: 2px;
+}
+
+
+/* =========================================
+   MONACO EDITOR - BACKGROUND & GUTTER
+   ========================================= */
+
+body[class*="sflow-theme-"] .monaco-editor,
+body[class*="sflow-theme-"] .monaco-editor-background,
+body[class*="sflow-theme-"] .monaco-editor .inputarea.ime-input {
+    background-color: var(--bg-primary) !important;
+}
+
+body[class*="sflow-theme-"] .monaco-editor .margin,
+body[class*="sflow-theme-"] .monaco-editor .margin-view-overlays {
+    background-color: var(--bg-primary) !important;
+}
+
+body[class*="sflow-theme-"] .monaco-editor .margin-view-overlays .line-numbers {
+    color: var(--fg-secondary) !important;
+}
+
+body[class*="sflow-theme-"] .monaco-editor .current-line {
+    background: var(--bg-selection) !important;
+    border: none !important;
+}
+
+body[class*="sflow-theme-"] .monaco-editor .cursor {
+    background-color: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+}
+
+/* Editor Selection */
+body[class*="sflow-theme-"] .monaco-editor .selected-text {
+    background-color: var(--bg-selection) !important;
+}
+
+/* Indent Guide Lines - subtle thin lines matching comment color */
+body[class*="sflow-theme-"] .monaco-editor .lines-content .cigr,
+body[class*="sflow-theme-"] .monaco-editor .lines-content .cigra,
+body[class*="sflow-theme-"] .monaco-editor .view-overlays .cigr,
+body[class*="sflow-theme-"] .monaco-editor .view-overlays .cigra,
+body[class*="sflow-theme-"] .monaco-editor .indentGuide,
+body[class*="sflow-theme-"] .monaco-editor .core-guide {
+    background: transparent !important;
+    box-shadow: 1px 0 0 0 var(--syntax-comment) inset !important;
+    opacity: 0.3;
+}
+
+/* Active indent guide - slightly more visible */
+body[class*="sflow-theme-"] .monaco-editor .cigra,
+body[class*="sflow-theme-"] .monaco-editor .core-guide-indent-active {
+    background: transparent !important;
+    box-shadow: 1px 0 0 0 var(--syntax-comment) inset !important;
+    opacity: 0.5;
+}
+
+
+/* =========================================
+   SYNTAX HIGHLIGHTING - GAS MONACO SPECIFIC
+   ========================================= */
+
+/* 
+   Mappings verified by DOM inspection on Google Apps Script editor:
+   - mtk5  = Numbers
+   - mtk7  = Strings
+   - mtk11 = Comments
+   - mtk16 = Functions & Variables (identifiers)
+   - mtk19 = Keywords
+*/
+
+/* mtk5 - NUMBERS (Purple) */
+body[class*="sflow-theme-"] .monaco-editor .mtk5 {
+    color: var(--syntax-number) !important;
+}
+
+/* mtk7 - STRINGS (Green for Dracula) */
+body[class*="sflow-theme-"] .monaco-editor .mtk7 {
+    color: var(--syntax-string) !important;
+}
+
+/* mtk11 - COMMENTS (Blue-Grey, Italic) */
+body[class*="sflow-theme-"] .monaco-editor .mtk11 {
+    color: var(--syntax-comment) !important;
+    font-style: italic;
+}
+
+/* mtk16 - VARIABLES (Yellow for Dracula) */
+body[class*="sflow-theme-"] .monaco-editor .mtk16 {
+    color: var(--syntax-variable) !important;
+}
+
+/* =========================================================================
+   PROJECT OVERVIEW / DASHBOARD PAGE TRADITIONAL FIXES
+   ========================================================================= */
+
+/* Main Cards (7 Day Summary, Health, Project Details) */
+body[class*="sflow-theme-"] .g3VIld,
+body[class*="sflow-theme-"] .Wvd84e,
+body[class*="sflow-theme-"] .ZZhnYe,
+body[class*="sflow-theme-"] .vKkXhe,
+body[class*="sflow-theme-"] .OkCl1d,
+body[class*="sflow-theme-"] .g3VIld>div {
+    /* Target direct children too */
+    background-color: var(--bg-secondary) !important;
+    color: var(--fg-primary) !important;
+    box-shadow: none !important;
+    border-color: var(--border-color) !important;
+}
+
+/* 
+   Aggressive fixes for inner white containers (often used in Google Charts/Cards).
+   Targeting any div inside the main card that explicitly has a white background.
+*/
+body[class*="sflow-theme-"] .g3VIld div[style*="background-color: rgb(255, 255, 255)"],
+body[class*="sflow-theme-"] .g3VIld div[style*="background-color: white"],
+body[class*="sflow-theme-"] .g3VIld div[style*="background: white"],
+body[class*="sflow-theme-"] .g3VIld rect[fill="#ffffff"],
+body[class*="sflow-theme-"] .g3VIld rect[fill="#fff"],
+body[class*="sflow-theme-"] .g3VIld rect[fill="white"] {
+    background-color: var(--bg-secondary) !important;
+    fill: var(--bg-secondary) !important;
+}
+
+/* Specific fix for the top blue header */
+body[class*="sflow-theme-"] .vKkXhe {
+    background-color: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Typography on cards */
+body[class*="sflow-theme-"] .g3VIld h1,
+body[class*="sflow-theme-"] .g3VIld h2,
+body[class*="sflow-theme-"] .g3VIld h3,
+body[class*="sflow-theme-"] .Wvd84e div {
+    color: var(--fg-primary) !important;
+}
+
+/* Secondary text */
+body[class*="sflow-theme-"] .g3VIld .A9jyad,
+body[class*="sflow-theme-"] .PNenzf,
+body[class*="sflow-theme-"] .p9Nwte,
+body[class*="sflow-theme-"] .fKz7Od {
+    color: var(--fg-secondary) !important;
+    fill: var(--fg-secondary) !important;
+}
+
+/* Icons in Project Details */
+body[class*="sflow-theme-"] .g3VIld svg,
+body[class*="sflow-theme-"] .Wvd84e svg {
+    fill: var(--fg-primary) !important;
+}
+
+/* 
+   CHARTS & GRAPHS 
+   Google Charts usually use inline SVG/VML. 
+   We need to attack the text and lines, and remove white backgrounds.
+*/
+
+/* Chart Container Background */
+body[class*="sflow-theme-"] .g3VIld rect[fill="#ffffff"],
+body[class*="sflow-theme-"] .g3VIld rect[fill="#fff"] {
+    fill: var(--bg-secondary) !important;
+}
+
+/* Chart Text (Axis labels, Legend) */
+body[class*="sflow-theme-"] .g3VIld text {
+    fill: var(--fg-secondary) !important;
+}
+
+/* Chart Gridlines */
+body[class*="sflow-theme-"] .g3VIld path[stroke="#e6e6e6"],
+body[class*="sflow-theme-"] .g3VIld line[stroke="#e6e6e6"] {
+    stroke: var(--border-color) !important;
+}
+
+/* 7-Day Summary Big Numbers */
+body[class*="sflow-theme-"] .tOrNgd {
+    color: var(--fg-primary) !important;
+}
+
+/* "Apps Script" Large Icon Container */
+body[class*="sflow-theme-"] .lWgMpf {
+    background-color: transparent !important;
+}
+
+/* mtk19 - KEYWORDS (Pink, Bold) */
+body[class*="sflow-theme-"] .monaco-editor .mtk19 {
+    color: var(--syntax-keyword) !important;
+    font-weight: 600;
+}
+
+/* Fallback for other mtk classes - use foreground */
+body[class*="sflow-theme-"] .monaco-editor .mtk1,
+body[class*="sflow-theme-"] .monaco-editor .mtk2,
+body[class*="sflow-theme-"] .monaco-editor .mtk3,
+body[class*="sflow-theme-"] .monaco-editor .mtk4,
+body[class*="sflow-theme-"] .monaco-editor .mtk6,
+body[class*="sflow-theme-"] .monaco-editor .mtk8,
+body[class*="sflow-theme-"] .monaco-editor .mtk9,
+body[class*="sflow-theme-"] .monaco-editor .mtk10,
+body[class*="sflow-theme-"] .monaco-editor .mtk12,
+body[class*="sflow-theme-"] .monaco-editor .mtk13,
+body[class*="sflow-theme-"] .monaco-editor .mtk14,
+body[class*="sflow-theme-"] .monaco-editor .mtk15,
+body[class*="sflow-theme-"] .monaco-editor .mtk17,
+body[class*="sflow-theme-"] .monaco-editor .mtk18,
+body[class*="sflow-theme-"] .monaco-editor .mtk20,
+body[class*="sflow-theme-"] .monaco-editor .mtk21,
+body[class*="sflow-theme-"] .monaco-editor .mtk22 {
+    color: var(--syntax-foreground) !important;
+}
+
+
+/* =========================================
+   SCROLLBARS & MISC
+   ========================================= */
+
+body[class*="sflow-theme-"] .monaco-scrollable-element>.scrollbar>.slider {
+    background: var(--hover-overlay, rgba(255, 255, 255, 0.2)) !important;
+    border-radius: 4px;
+}
+
+body[class*="sflow-theme-"] .monaco-scrollable-element>.scrollbar>.slider:hover {
+    background: var(--active-overlay, rgba(255, 255, 255, 0.3)) !important;
+}
+
+/* =========================================
+   MODAL - DRACULA UI STYLED
+   ========================================= */
+
+body[class*="sflow-theme-"] .sflow-modal-overlay {
+    background: var(--bg-dark, #191A21) !important;
+    background: rgba(25, 26, 33, 0.8) !important;
+}
+
+body[class*="sflow-theme-"] .sflow-modal {
+    background: var(--bg-secondary) !important;
+    color: var(--fg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+body[class*="sflow-theme-"] .sflow-modal-header {
+    background: var(--bg-primary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+body[class*="sflow-theme-"] .sflow-modal-header h2 {
+    color: var(--fg-primary) !important;
+}
+
+body[class*="sflow-theme-"] .sflow-close-btn {
+    color: var(--fg-secondary) !important;
+}
+
+body[class*="sflow-theme-"] .sflow-close-btn:hover {
+    color: var(--color-danger, #FF5555) !important;
+}

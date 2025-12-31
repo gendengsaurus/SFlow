@@ -1,0 +1,258 @@
+:root {
+    --bg-primary: #191A21;
+    --bg-secondary: #282A36;
+    --bg-hover: #44475A;
+    --fg-primary: #F8F8F2;
+    --fg-secondary: #BD93F9;
+    /* Dracula Purple */
+    --accent-color: #BD93F9;
+    --border-color: #44475A;
+    --success-color: #50FA7B;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    width: 280px;
+    background-color: var(--bg-primary);
+    color: var(--fg-primary);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--fg-primary);
+}
+
+.logo-icon-img {
+    border-radius: 4px;
+    /* Slight rounded corners for the icon */
+}
+
+/* Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-hover);
+    /* Grey when off */
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: var(--accent-color);
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+/* Divider */
+.divider {
+    height: 1px;
+    background-color: var(--border-color);
+    width: 100%;
+}
+
+/* Settings */
+.settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.label-text {
+    font-size: 12px;
+    color: #8b9bb4;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+select {
+    width: 100%;
+    background-color: var(--bg-secondary);
+    color: var(--fg-primary);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 6px;
+    appearance: none;
+    cursor: pointer;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+select:hover {
+    border-color: var(--fg-secondary);
+}
+
+select:focus {
+    border-color: var(--accent-color);
+}
+
+.chevron {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--fg-secondary);
+}
+
+/* Support Section */
+.support-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.love-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background-color: var(--bg-secondary);
+    color: #ffffff;
+    /* Explicitly White Text */
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+}
+
+.love-btn:hover {
+    background-color: var(--bg-hover);
+    transform: translateY(-1px);
+}
+
+.heart-icon {
+    transition: transform 0.2s;
+    /* Heart remains red via inline fill or here */
+    color: #FF5555;
+}
+
+.love-btn:hover .heart-icon {
+    transform: scale(1.1);
+}
+
+/* Support Links Dropdown */
+/* Specificity Fix: Ensure this wins */
+.support-links.hidden {
+    display: none !important;
+}
+
+.support-links {
+    display: flex;
+    /* This was overriding hidden before */
+    flex-direction: column;
+    gap: 8px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.support-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: filter 0.2s;
+}
+
+.support-link:hover {
+    filter: brightness(1.1);
+}
+
+.support-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.trakteer {
+    background-color: #BE1E2D;
+    /* Trakteer Red */
+    color: white;
+}
+
+.kofi {
+    background-color: #29abe0;
+    /* Ko-Fi Blue */
+    color: white;
+}
+
+/* Footer */
+.footer {
+    display: flex;
+    justify-content: center;
+    font-size: 10px;
+    color: #6272A4;
+}

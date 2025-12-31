@@ -56,7 +56,10 @@ const SVGs = {
     font: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>`,
     todo: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>`,
     snippet: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`,
-    command: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"></path></svg>`
+    command: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"></path></svg>`,
+    // Phase 2 Icons
+    rainbow: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h4a8 8 0 0 0 8-8 8 8 0 0 0-8-8H4"></path><path d="M4 6v12"></path></svg>`,
+    snippetAdd: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>`
 };
 
 async function init() {
@@ -679,6 +682,20 @@ function injectToolbarInline(container, referenceNode) {
         </div>
 
         <div class="sflow-control-group">
+            <button id="sflow-rainbow-toggle" class="sflow-icon-btn sflow-tooltip" data-tooltip="Rainbow Brackets">
+                ${SVGs.rainbow}
+            </button>
+        </div>
+
+        <div class="sflow-control-group">
+            <button id="sflow-snippet-btn" class="sflow-icon-btn sflow-tooltip" data-tooltip="View Snippets (type + Tab)">
+                ${SVGs.snippet}
+            </button>
+        </div>
+
+        <div class="sflow-divider"></div>
+
+        <div class="sflow-control-group">
             <button id="sflow-command-palette" class="sflow-icon-btn sflow-tooltip" data-tooltip="Command Palette (Ctrl+Shift+P)">
                 ${SVGs.command}
             </button>
@@ -733,11 +750,26 @@ function setupToolbarListeners() {
         todoBtn.addEventListener('click', toggleTodoHighlight);
     }
 
+    // Rainbow Brackets Button
+    const rainbowBtn = document.getElementById('sflow-rainbow-toggle');
+    if (rainbowBtn) {
+        rainbowBtn.addEventListener('click', toggleRainbowBrackets);
+    }
+
+    // Snippet Manager Button
+    const snippetBtn = document.getElementById('sflow-snippet-btn');
+    if (snippetBtn) {
+        snippetBtn.addEventListener('click', openSnippetManager);
+    }
+
     // Command Palette Button
     const cmdBtn = document.getElementById('sflow-command-palette');
     if (cmdBtn) {
         cmdBtn.addEventListener('click', openCommandPalette);
     }
+
+    // Initialize Snippet System
+    initSnippets();
 
     // Initialize State
     try {
@@ -1121,8 +1153,12 @@ function openCommandPalette() {
         { name: 'Theme: Default (Light)', action: () => setThemeFromPalette('default'), shortcut: '' },
         { name: 'Font: Fira Code', action: () => setFontFromPalette('firacode'), shortcut: '' },
         { name: 'Font: JetBrains Mono', action: () => setFontFromPalette('jetbrains'), shortcut: '' },
+        { name: 'Font: Cascadia Code', action: () => setFontFromPalette('cascadia'), shortcut: '' },
+        { name: 'Font: Source Code Pro', action: () => setFontFromPalette('source'), shortcut: '' },
         { name: 'Font: Default', action: () => setFontFromPalette('default'), shortcut: '' },
         { name: 'Toggle TODO Highlighting', action: toggleTodoHighlight, shortcut: '' },
+        { name: 'Toggle Rainbow Brackets', action: toggleRainbowBrackets, shortcut: '' },
+        { name: 'View Snippets', action: openSnippetManager, shortcut: '' },
     ];
 
     const overlay = document.createElement('div');
@@ -1259,7 +1295,7 @@ function setupGlobalShortcuts() {
 // === LOAD SAVED SETTINGS ===
 function loadFeatureSettings() {
     try {
-        chrome.storage.local.get(['zenMode', 'font', 'todoHighlight'], (result) => {
+        chrome.storage.local.get(['zenMode', 'font', 'todoHighlight', 'rainbowBrackets'], (result) => {
             if (chrome.runtime.lastError) return;
 
             // Restore Zen Mode
@@ -1280,10 +1316,328 @@ function loadFeatureSettings() {
                 todoHighlightEnabled = false;
                 toggleTodoHighlight();
             }
+
+            // Restore Rainbow Brackets
+            if (result.rainbowBrackets) {
+                rainbowBracketsEnabled = false;
+                toggleRainbowBrackets();
+            }
         });
     } catch (e) {
         console.warn('ScriptFlow: Could not load feature settings');
     }
+}
+
+// ===========================================
+// PHASE 2 FEATURES
+// ===========================================
+
+// === RAINBOW BRACKETS ===
+let rainbowBracketsEnabled = false;
+
+const BRACKET_COLORS = [
+    '#FFD700', // Gold
+    '#DA70D6', // Orchid  
+    '#87CEEB', // Sky Blue
+    '#98FB98', // Pale Green
+    '#FFA07A', // Light Salmon
+    '#DDA0DD', // Plum
+];
+
+function toggleRainbowBrackets() {
+    rainbowBracketsEnabled = !rainbowBracketsEnabled;
+
+    const rainbowBtn = document.getElementById('sflow-rainbow-toggle');
+    if (rainbowBtn) {
+        rainbowBtn.classList.toggle('active', rainbowBracketsEnabled);
+        rainbowBtn.setAttribute('data-tooltip', rainbowBracketsEnabled ? 'Rainbow Brackets ON' : 'Rainbow Brackets');
+    }
+
+    if (rainbowBracketsEnabled) {
+        injectRainbowStyles();
+        console.log('ScriptFlow: Rainbow Brackets enabled');
+    } else {
+        removeRainbowStyles();
+        console.log('ScriptFlow: Rainbow Brackets disabled');
+    }
+
+    try {
+        chrome.storage.local.set({ rainbowBrackets: rainbowBracketsEnabled });
+    } catch (e) { }
+}
+
+function injectRainbowStyles() {
+    let styleEl = document.getElementById('sflow-rainbow-styles');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'sflow-rainbow-styles';
+        document.head.appendChild(styleEl);
+    }
+
+    // Generate CSS for each bracket depth level
+    let css = '';
+    BRACKET_COLORS.forEach((color, i) => {
+        css += `
+            .sflow-bracket-${i} {
+                color: ${color} !important;
+                font-weight: 600;
+            }
+        `;
+    });
+
+    styleEl.textContent = css;
+}
+
+function removeRainbowStyles() {
+    const styleEl = document.getElementById('sflow-rainbow-styles');
+    if (styleEl) {
+        styleEl.textContent = '';
+    }
+}
+
+// === CUSTOM SNIPPETS ===
+const DEFAULT_SNIPPETS = {
+    'clog': 'Logger.log($1);',
+    'clogf': 'Logger.log(`$1: ${$1}`);',
+    'func': 'function $1($2) {\n  $3\n}',
+    'afunc': 'async function $1($2) {\n  $3\n}',
+    'arrow': 'const $1 = ($2) => {\n  $3\n};',
+    'foreach': '$1.forEach(($2) => {\n  $3\n});',
+    'map': '$1.map(($2) => {\n  $3\n});',
+    'filter': '$1.filter(($2) => {\n  $3\n});',
+    'try': 'try {\n  $1\n} catch (error) {\n  Logger.log(error);\n}',
+    'if': 'if ($1) {\n  $2\n}',
+    'ifelse': 'if ($1) {\n  $2\n} else {\n  $3\n}',
+    'for': 'for (let i = 0; i < $1; i++) {\n  $2\n}',
+    'forin': 'for (const $1 in $2) {\n  $3\n}',
+    'forof': 'for (const $1 of $2) {\n  $3\n}',
+    'ss': 'SpreadsheetApp.getActiveSpreadsheet()',
+    'sheet': 'SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()',
+    'range': 'sheet.getRange($1)',
+    'getval': 'sheet.getRange($1).getValue()',
+    'getvals': 'sheet.getRange($1).getValues()',
+    'setval': 'sheet.getRange($1).setValue($2)',
+    'setvals': 'sheet.getRange($1).setValues($2)',
+    'doc': '/**\n * $1\n * @param {$2} $3 - $4\n * @returns {$5}\n */',
+    'todo': '// TODO: $1',
+    'fixme': '// FIXME: $1',
+    'ui': 'SpreadsheetApp.getUi()',
+    'alert': 'SpreadsheetApp.getUi().alert($1)',
+    'prompt': 'SpreadsheetApp.getUi().prompt($1)',
+    'menu': 'SpreadsheetApp.getUi().createMenu($1)\n  .addItem($2, $3)\n  .addToUi();',
+    'trigger': 'ScriptApp.newTrigger($1)\n  .timeBased()\n  .everyMinutes($2)\n  .create();',
+    'fetch': 'UrlFetchApp.fetch($1, {\n  method: $2,\n  headers: { "Content-Type": "application/json" },\n  payload: JSON.stringify($3)\n});',
+    'json': 'JSON.parse($1)',
+    'stringify': 'JSON.stringify($1)',
+};
+
+let customSnippets = { ...DEFAULT_SNIPPETS };
+let snippetManagerEnabled = true;
+
+function setupSnippetListener() {
+    document.addEventListener('keydown', handleSnippetExpand, true);
+}
+
+function handleSnippetExpand(e) {
+    if (!snippetManagerEnabled) return;
+
+    // Tab key triggers snippet expansion
+    if (e.key !== 'Tab') return;
+
+    // Get active element (should be monaco editor)
+    const activeEl = document.activeElement;
+    if (!activeEl || !activeEl.closest('.monaco-editor')) return;
+
+    // Check if we're in an input or textarea (Monaco uses different elements)
+    const editorTextArea = document.querySelector('.monaco-editor .inputarea');
+    if (!editorTextArea) return;
+
+    // Try to get current word before cursor using selection
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    // For Monaco, we need to work with the view-line elements
+    // This is a simplified version - full implementation would need Monaco API
+
+    // Get the last typed word from any visible selected text
+    const range = selection.getRangeAt(0);
+    if (!range.collapsed) return; // Only expand when no selection
+
+    // Try to find the word before cursor by checking recent keystrokes
+    // This uses the snippetBuffer approach
+    const word = snippetBuffer.trim();
+
+    if (word && customSnippets[word]) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const snippet = customSnippets[word];
+        insertSnippet(snippet, word.length);
+        snippetBuffer = '';
+        return;
+    }
+}
+
+// Buffer to track recently typed characters
+let snippetBuffer = '';
+let snippetBufferTimeout = null;
+
+function setupSnippetBuffer() {
+    document.addEventListener('keydown', (e) => {
+        if (!snippetManagerEnabled) return;
+
+        // Only track in Monaco editor
+        if (!e.target.closest('.monaco-editor')) {
+            snippetBuffer = '';
+            return;
+        }
+
+        // Reset buffer on certain keys
+        if (['Enter', 'Escape', ' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+            snippetBuffer = '';
+            return;
+        }
+
+        // Backspace - remove last char
+        if (e.key === 'Backspace') {
+            snippetBuffer = snippetBuffer.slice(0, -1);
+            return;
+        }
+
+        // Tab - handled by snippetExpand
+        if (e.key === 'Tab') {
+            return;
+        }
+
+        // Add character to buffer (only if it's a single char)
+        if (e.key.length === 1 && /[a-zA-Z0-9_]/.test(e.key)) {
+            snippetBuffer += e.key;
+
+            // Clear buffer after 3 seconds of no typing
+            clearTimeout(snippetBufferTimeout);
+            snippetBufferTimeout = setTimeout(() => {
+                snippetBuffer = '';
+            }, 3000);
+        }
+    }, true);
+}
+
+function insertSnippet(snippet, deleteChars) {
+    // Simulate backspace to delete the trigger word
+    for (let i = 0; i < deleteChars; i++) {
+        document.execCommand('delete', false);
+    }
+
+    // Process snippet - find first $1 placeholder
+    let processedSnippet = snippet;
+    let cursorOffset = 0;
+
+    // Find first placeholder position
+    const placeholderMatch = processedSnippet.match(/\$1/);
+    if (placeholderMatch) {
+        cursorOffset = placeholderMatch.index;
+        // Remove all placeholders for now (simplified)
+        processedSnippet = processedSnippet.replace(/\$\d/g, '');
+    }
+
+    // Insert the snippet text
+    document.execCommand('insertText', false, processedSnippet);
+
+    console.log('ScriptFlow: Snippet expanded');
+}
+
+function openSnippetManager() {
+    if (document.getElementById('sflow-snippet-modal')) {
+        closeSnippetManager();
+        return;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.id = 'sflow-snippet-modal';
+    overlay.className = 'sflow-palette-overlay';
+
+    const snippetList = Object.entries(customSnippets).map(([trigger, code]) => `
+        <div class="sflow-snippet-item">
+            <code class="sflow-snippet-trigger">${trigger}</code>
+            <span class="sflow-snippet-arrow">→</span>
+            <code class="sflow-snippet-code">${escapeHtml(code.split('\n')[0].substring(0, 40))}${code.length > 40 ? '...' : ''}</code>
+        </div>
+    `).join('');
+
+    overlay.innerHTML = `
+        <div class="sflow-snippet-container">
+            <div class="sflow-snippet-header">
+                <h3>📝 Code Snippets</h3>
+                <span class="sflow-snippet-hint">Type trigger + Tab to expand</span>
+            </div>
+            <div class="sflow-snippet-search">
+                <input type="text" class="sflow-snippet-input" placeholder="Search snippets...">
+            </div>
+            <div class="sflow-snippet-list">
+                ${snippetList}
+            </div>
+            <div class="sflow-snippet-footer">
+                <button class="sflow-btn sflow-snippet-close">Close</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Search functionality
+    const input = overlay.querySelector('.sflow-snippet-input');
+    const list = overlay.querySelector('.sflow-snippet-list');
+
+    input.addEventListener('input', (e) => {
+        const filter = e.target.value.toLowerCase();
+        const filtered = Object.entries(customSnippets)
+            .filter(([trigger, code]) =>
+                trigger.toLowerCase().includes(filter) ||
+                code.toLowerCase().includes(filter)
+            );
+
+        list.innerHTML = filtered.map(([trigger, code]) => `
+            <div class="sflow-snippet-item">
+                <code class="sflow-snippet-trigger">${trigger}</code>
+                <span class="sflow-snippet-arrow">→</span>
+                <code class="sflow-snippet-code">${escapeHtml(code.split('\n')[0].substring(0, 40))}${code.length > 40 ? '...' : ''}</code>
+            </div>
+        `).join('');
+    });
+
+    // Close handlers
+    overlay.querySelector('.sflow-snippet-close').addEventListener('click', closeSnippetManager);
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeSnippetManager();
+    });
+
+    // ESC to close
+    document.addEventListener('keydown', function escHandler(e) {
+        if (e.key === 'Escape') {
+            closeSnippetManager();
+            document.removeEventListener('keydown', escHandler);
+        }
+    });
+
+    input.focus();
+}
+
+function closeSnippetManager() {
+    const modal = document.getElementById('sflow-snippet-modal');
+    if (modal) modal.remove();
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// Initialize snippet system
+function initSnippets() {
+    setupSnippetBuffer();
+    setupSnippetListener();
+    console.log('ScriptFlow: Snippet system initialized with', Object.keys(customSnippets).length, 'snippets');
 }
 
 

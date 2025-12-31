@@ -1431,9 +1431,16 @@ function colorizeBrackets() {
         '#DDA0DD', // Plum
     ];
 
-    const viewLines = document.querySelectorAll('.monaco-editor .view-line');
+    // Get all view lines and sort them by their position (top) 
+    // Monaco doesn't always render lines in DOM order
+    const viewLinesRaw = document.querySelectorAll('.monaco-editor .view-line');
+    const viewLines = Array.from(viewLinesRaw).sort((a, b) => {
+        const aTop = parseFloat(a.style.top) || 0;
+        const bTop = parseFloat(b.style.top) || 0;
+        return aTop - bTop;
+    });
 
-    // Track depth GLOBALLY across all lines (not per line!)
+    // Track depth GLOBALLY across all lines
     let depth = { '(': 0, '[': 0, '{': 0 };
 
     viewLines.forEach(line => {
@@ -1441,29 +1448,51 @@ function colorizeBrackets() {
 
         spans.forEach(span => {
             const text = span.textContent;
+            if (!text) return;
 
-            // Helper to apply rainbow color
-            const applyColor = (bracketType, isOpening) => {
-                if (isOpening) {
-                    const colorIndex = depth[bracketType] % 6;
-                    span.style.setProperty('color', COLORS[colorIndex], 'important');
-                    span.classList.add(`sflow-rb-${colorIndex}`);
-                    depth[bracketType]++;
-                } else {
-                    depth[bracketType] = Math.max(0, depth[bracketType] - 1);
-                    const colorIndex = depth[bracketType] % 6;
-                    span.style.setProperty('color', COLORS[colorIndex], 'important');
-                    span.classList.add(`sflow-rb-${colorIndex}`);
+            // For spans with ONLY a bracket, colorize them
+            if (text === '(') {
+                span.style.setProperty('color', COLORS[depth['('] % 6], 'important');
+                span.setAttribute('data-rb', depth['('] % 6);
+                depth['(']++;
+            }
+            else if (text === ')') {
+                depth['('] = Math.max(0, depth['('] - 1);
+                span.style.setProperty('color', COLORS[depth['('] % 6], 'important');
+                span.setAttribute('data-rb', depth['('] % 6);
+            }
+            else if (text === '[') {
+                span.style.setProperty('color', COLORS[depth['['] % 6], 'important');
+                span.setAttribute('data-rb', depth['['] % 6);
+                depth['[']++;
+            }
+            else if (text === ']') {
+                depth['['] = Math.max(0, depth['['] - 1);
+                span.style.setProperty('color', COLORS[depth['['] % 6], 'important');
+                span.setAttribute('data-rb', depth['['] % 6);
+            }
+            else if (text === '{') {
+                span.style.setProperty('color', COLORS[depth['{'] % 6], 'important');
+                span.setAttribute('data-rb', depth['{'] % 6);
+                depth['{']++;
+            }
+            else if (text === '}') {
+                depth['{'] = Math.max(0, depth['{'] - 1);
+                span.style.setProperty('color', COLORS[depth['{'] % 6], 'important');
+                span.setAttribute('data-rb', depth['{'] % 6);
+            }
+            else {
+                // For mixed content spans, still count brackets to track depth
+                // but don't colorize them (would affect other text)
+                for (const char of text) {
+                    if (char === '(') depth['(']++;
+                    else if (char === ')') depth['('] = Math.max(0, depth['('] - 1);
+                    else if (char === '[') depth['[']++;
+                    else if (char === ']') depth['['] = Math.max(0, depth['['] - 1);
+                    else if (char === '{') depth['{']++;
+                    else if (char === '}') depth['{'] = Math.max(0, depth['{'] - 1);
                 }
-            };
-
-            // Check for brackets
-            if (text === '(') applyColor('(', true);
-            else if (text === ')') applyColor('(', false);
-            else if (text === '[') applyColor('[', true);
-            else if (text === ']') applyColor('[', false);
-            else if (text === '{') applyColor('{', true);
-            else if (text === '}') applyColor('{', false);
+            }
         });
     });
 }

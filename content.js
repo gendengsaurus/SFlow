@@ -1380,25 +1380,38 @@ function injectRainbowStyles() {
     }
 
     // CSS-based rainbow colors for brackets
-    // Target Monaco's bracket highlighting and bracket characters
+    // Use very high specificity to override theme colors
     styleEl.textContent = `
-        /* Rainbow bracket colors */
-        .sflow-rb-0 { color: #FFD700 !important; } /* Gold */
-        .sflow-rb-1 { color: #DA70D6 !important; } /* Orchid */
-        .sflow-rb-2 { color: #87CEEB !important; } /* Sky Blue */
-        .sflow-rb-3 { color: #98FB98 !important; } /* Pale Green */
-        .sflow-rb-4 { color: #FFA07A !important; } /* Light Salmon */
-        .sflow-rb-5 { color: #DDA0DD !important; } /* Plum */
+        /* Rainbow bracket colors - HIGH SPECIFICITY to override themes */
+        body .monaco-editor .view-line span.sflow-rb-0,
+        body[class*="sflow-theme-"] .monaco-editor .view-line span.sflow-rb-0 { 
+            color: #FFD700 !important; /* Gold */
+        }
+        body .monaco-editor .view-line span.sflow-rb-1,
+        body[class*="sflow-theme-"] .monaco-editor .view-line span.sflow-rb-1 { 
+            color: #DA70D6 !important; /* Orchid */
+        }
+        body .monaco-editor .view-line span.sflow-rb-2,
+        body[class*="sflow-theme-"] .monaco-editor .view-line span.sflow-rb-2 { 
+            color: #87CEEB !important; /* Sky Blue */
+        }
+        body .monaco-editor .view-line span.sflow-rb-3,
+        body[class*="sflow-theme-"] .monaco-editor .view-line span.sflow-rb-3 { 
+            color: #98FB98 !important; /* Pale Green */
+        }
+        body .monaco-editor .view-line span.sflow-rb-4,
+        body[class*="sflow-theme-"] .monaco-editor .view-line span.sflow-rb-4 { 
+            color: #FFA07A !important; /* Light Salmon */
+        }
+        body .monaco-editor .view-line span.sflow-rb-5,
+        body[class*="sflow-theme-"] .monaco-editor .view-line span.sflow-rb-5 { 
+            color: #DDA0DD !important; /* Plum */
+        }
         
         /* Make brackets more visible */
         .monaco-editor .bracket-match {
             border: 1px solid #FFD700 !important;
             background: rgba(255, 215, 0, 0.1) !important;
-        }
-        
-        /* Color brackets in view lines using attribute targeting */
-        .monaco-editor .view-line span:not([class*="mtk"]) {
-            /* Default styling */
         }
     `;
 
@@ -1409,6 +1422,15 @@ function injectRainbowStyles() {
 function colorizeBrackets() {
     if (!rainbowBracketsEnabled) return;
 
+    const COLORS = [
+        '#FFD700', // Gold
+        '#DA70D6', // Orchid  
+        '#87CEEB', // Sky Blue
+        '#98FB98', // Pale Green
+        '#FFA07A', // Light Salmon
+        '#DDA0DD', // Plum
+    ];
+
     const viewLines = document.querySelectorAll('.monaco-editor .view-line');
 
     viewLines.forEach(line => {
@@ -1418,40 +1440,28 @@ function colorizeBrackets() {
         spans.forEach(span => {
             const text = span.textContent;
 
+            // Helper to apply rainbow color
+            const applyColor = (bracketType, isOpening) => {
+                if (isOpening) {
+                    const colorIndex = depth[bracketType] % 6;
+                    span.style.setProperty('color', COLORS[colorIndex], 'important');
+                    span.classList.add(`sflow-rb-${colorIndex}`);
+                    depth[bracketType]++;
+                } else {
+                    depth[bracketType] = Math.max(0, depth[bracketType] - 1);
+                    const colorIndex = depth[bracketType] % 6;
+                    span.style.setProperty('color', COLORS[colorIndex], 'important');
+                    span.classList.add(`sflow-rb-${colorIndex}`);
+                }
+            };
+
             // Check for brackets
-            if (text === '(' || text === ')') {
-                if (text === '(') {
-                    span.className = span.className.replace(/sflow-rb-\d/g, '');
-                    span.classList.add(`sflow-rb-${depth['('] % 6}`);
-                    depth['(']++;
-                } else {
-                    depth['('] = Math.max(0, depth['('] - 1);
-                    span.className = span.className.replace(/sflow-rb-\d/g, '');
-                    span.classList.add(`sflow-rb-${depth['('] % 6}`);
-                }
-            }
-            else if (text === '[' || text === ']') {
-                if (text === '[') {
-                    span.className = span.className.replace(/sflow-rb-\d/g, '');
-                    span.classList.add(`sflow-rb-${depth['['] % 6}`);
-                    depth['[']++;
-                } else {
-                    depth['['] = Math.max(0, depth['['] - 1);
-                    span.className = span.className.replace(/sflow-rb-\d/g, '');
-                    span.classList.add(`sflow-rb-${depth['['] % 6}`);
-                }
-            }
-            else if (text === '{' || text === '}') {
-                if (text === '{') {
-                    span.className = span.className.replace(/sflow-rb-\d/g, '');
-                    span.classList.add(`sflow-rb-${depth['{'] % 6}`);
-                    depth['{']++;
-                } else {
-                    depth['{'] = Math.max(0, depth['{'] - 1);
-                    span.className = span.className.replace(/sflow-rb-\d/g, '');
-                    span.classList.add(`sflow-rb-${depth['{'] % 6}`);
-                }
-            }
+            if (text === '(') applyColor('(', true);
+            else if (text === ')') applyColor('(', false);
+            else if (text === '[') applyColor('[', true);
+            else if (text === ']') applyColor('[', false);
+            else if (text === '{') applyColor('{', true);
+            else if (text === '}') applyColor('{', false);
         });
     });
 }
@@ -1485,9 +1495,10 @@ function stopRainbowObserver() {
     }
     clearTimeout(rainbowDebounceTimer);
 
-    // Remove color classes from brackets
+    // Remove color classes and inline styles from brackets
     document.querySelectorAll('[class*="sflow-rb-"]').forEach(el => {
         el.className = el.className.replace(/sflow-rb-\d/g, '').trim();
+        el.style.removeProperty('color');
     });
 }
 

@@ -1433,9 +1433,11 @@ function colorizeBrackets() {
 
     const viewLines = document.querySelectorAll('.monaco-editor .view-line');
 
+    // Track depth GLOBALLY across all lines (not per line!)
+    let depth = { '(': 0, '[': 0, '{': 0 };
+
     viewLines.forEach(line => {
         const spans = line.querySelectorAll('span');
-        let depth = { '(': 0, '[': 0, '{': 0 };
 
         spans.forEach(span => {
             const text = span.textContent;

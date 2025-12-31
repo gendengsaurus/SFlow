@@ -1432,7 +1432,6 @@ function colorizeBrackets() {
     ];
 
     // Get all view lines and sort them by their position (top) 
-    // Monaco doesn't always render lines in DOM order
     const viewLinesRaw = document.querySelectorAll('.monaco-editor .view-line');
     const viewLines = Array.from(viewLinesRaw).sort((a, b) => {
         const aTop = parseFloat(a.style.top) || 0;
@@ -1440,58 +1439,41 @@ function colorizeBrackets() {
         return aTop - bTop;
     });
 
-    // Track depth GLOBALLY across all lines
-    let depth = { '(': 0, '[': 0, '{': 0 };
+    // Use stacks to match opening/closing brackets properly
+    // Each stack stores the color index used for opening brackets
+    let stacks = { '(': [], '[': [], '{': [] };
+    let nextColorIndex = { '(': 0, '[': 0, '{': 0 };
 
     viewLines.forEach(line => {
         const spans = line.querySelectorAll('span');
 
         spans.forEach(span => {
             const text = span.textContent;
-            if (!text) return;
+            if (!text || text.length !== 1) return; // Only process single-character spans
 
-            // For spans with ONLY a bracket, colorize them
-            if (text === '(') {
-                span.style.setProperty('color', COLORS[depth['('] % 6], 'important');
-                span.setAttribute('data-rb', depth['('] % 6);
-                depth['(']++;
+            // Opening brackets: assign next color and push to stack
+            if (text === '(' || text === '[' || text === '{') {
+                const colorIndex = nextColorIndex[text] % 6;
+                span.style.setProperty('color', COLORS[colorIndex], 'important');
+                span.setAttribute('data-rb', colorIndex);
+                stacks[text].push(colorIndex);
+                nextColorIndex[text]++;
             }
+            // Closing brackets: pop from stack and use that color
             else if (text === ')') {
-                depth['('] = Math.max(0, depth['('] - 1);
-                span.style.setProperty('color', COLORS[depth['('] % 6], 'important');
-                span.setAttribute('data-rb', depth['('] % 6);
-            }
-            else if (text === '[') {
-                span.style.setProperty('color', COLORS[depth['['] % 6], 'important');
-                span.setAttribute('data-rb', depth['['] % 6);
-                depth['[']++;
+                const colorIndex = stacks['('].length > 0 ? stacks['('].pop() : 0;
+                span.style.setProperty('color', COLORS[colorIndex], 'important');
+                span.setAttribute('data-rb', colorIndex);
             }
             else if (text === ']') {
-                depth['['] = Math.max(0, depth['['] - 1);
-                span.style.setProperty('color', COLORS[depth['['] % 6], 'important');
-                span.setAttribute('data-rb', depth['['] % 6);
-            }
-            else if (text === '{') {
-                span.style.setProperty('color', COLORS[depth['{'] % 6], 'important');
-                span.setAttribute('data-rb', depth['{'] % 6);
-                depth['{']++;
+                const colorIndex = stacks['['].length > 0 ? stacks['['].pop() : 0;
+                span.style.setProperty('color', COLORS[colorIndex], 'important');
+                span.setAttribute('data-rb', colorIndex);
             }
             else if (text === '}') {
-                depth['{'] = Math.max(0, depth['{'] - 1);
-                span.style.setProperty('color', COLORS[depth['{'] % 6], 'important');
-                span.setAttribute('data-rb', depth['{'] % 6);
-            }
-            else {
-                // For mixed content spans, still count brackets to track depth
-                // but don't colorize them (would affect other text)
-                for (const char of text) {
-                    if (char === '(') depth['(']++;
-                    else if (char === ')') depth['('] = Math.max(0, depth['('] - 1);
-                    else if (char === '[') depth['[']++;
-                    else if (char === ']') depth['['] = Math.max(0, depth['['] - 1);
-                    else if (char === '{') depth['{']++;
-                    else if (char === '}') depth['{'] = Math.max(0, depth['{'] - 1);
-                }
+                const colorIndex = stacks['{'].length > 0 ? stacks['{'].pop() : 0;
+                span.style.setProperty('color', COLORS[colorIndex], 'important');
+                span.setAttribute('data-rb', colorIndex);
             }
         });
     });

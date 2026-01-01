@@ -1,11 +1,17 @@
 :root {
-    --bg-primary: #191A21;
-    --bg-secondary: #282A36;
-    --bg-hover: #44475A;
-    --fg-primary: #F8F8F2;
+    /* Eye Comfort Palette (Softened Dracula) */
+    --bg-primary: #222430;
+    /* Deeper, less harsh background */
+    --bg-secondary: #3B3E4F;
+    /* Softer contrast for inputs/cards */
+    --bg-hover: #4F5266;
+    --fg-primary: #E2E4E9;
+    /* Off-white, easier on eyes than #F8F8F2 */
     --fg-secondary: #BD93F9;
+    /* Pastel Purple */
     --accent-color: #BD93F9;
-    --border-color: #44475A;
+    --border-color: #4F5266;
+    /* Subtle border */
     --success-color: #50FA7B;
 }
 

@@ -5,7 +5,7 @@ console.log('ScriptFlow: Content script loaded');
 // === THEME DEFINITIONS ===
 const THEMES = {
     default: {
-        accent: '#1a73e8',
+        accent: '#1a73e8', // Google Blue
         fgPrimary: '#202124',
         fgSecondary: '#5f6368',
         bgPrimary: '#ffffff',
@@ -13,24 +13,24 @@ const THEMES = {
     },
     dracula: {
         accent: '#BD93F9',
-        fgPrimary: '#F8F8F2',
+        fgPrimary: '#E2E4E9', // Softer Off-White (was #F8F8F2)
         fgSecondary: '#6272A4',
-        bgPrimary: '#282A36',
+        bgPrimary: '#222430', // Deeper, less glare (was #282A36)
         border: '#44475A'
     },
     monokai: {
-        accent: '#a6e22e',
-        fgPrimary: '#f8f8f2',
-        fgSecondary: '#75715e',
-        bgPrimary: '#272822',
-        border: '#49483e'
+        accent: '#FFD866', // Pro Yellow (Softer than #A6E22E green)
+        fgPrimary: '#FCFCFA', // Pro White
+        fgSecondary: '#727072',
+        bgPrimary: '#2D2A2E', // Monokai Pro (Dark Grey > Muddy Brown)
+        border: '#403E41'
     },
     nord: {
-        accent: '#88c0d0',
-        fgPrimary: '#eceff4',
-        fgSecondary: '#e5e9f0',
-        bgPrimary: '#2e3440',
-        border: '#4c566a'
+        accent: '#88C0D0',
+        fgPrimary: '#D8DEE9',
+        fgSecondary: '#4C566A',
+        bgPrimary: '#2E3440', // Nord is already soft & good
+        border: '#434C5E'
     }
 };
 
@@ -606,55 +606,57 @@ function updateToggleIcon(btn, theme) {
 }
 
 function waitForToolbarAndInject() {
-    const observer = new MutationObserver((mutations, obs) => {
+    // If already watching, don't start another one
+    if (toolbarObserver) return;
+
+    const observer = new MutationObserver(() => {
+        // If toolbar already exists, nothing to do
+        if (document.getElementById('sflow-toolbar')) return;
+
         const buttons = Array.from(document.querySelectorAll('button, div[role="button"]'));
-        // Strategy: Find the wrapper that contains "Execution log"
-        // Often GAS has a structure like: [Debug] [Wrapper -> [Execution Log]]
-        // or [Debug] [Execution Log]
+
+        // Find visible "Execution log" as anchor
+        const allDivs = Array.from(document.querySelectorAll('div, button, span'));
+        const execLogElement = allDivs.find(el =>
+            el.textContent &&
+            el.textContent.trim() === 'Execution log' &&
+            el.offsetParent !== null
+        );
 
         let targetNode = null;
-
-        // Find all elements with text 'Execution log'
-        const allDivs = Array.from(document.querySelectorAll('div, button, span'));
-        const execLogElement = allDivs.find(el => el.textContent && el.textContent.trim() === 'Execution log' && el.offsetParent !== null); // Visible only
-
         if (execLogElement) {
-            // We want to append to the container that holds this button/element.
-            // Usually we want to go up to the flex item wrapper.
-            // Let's try to find the button/role="button" ancestor or the element itself.
-            const buttonAncestor = execLogElement.closest('[role="button"]') || execLogElement.closest('button') || execLogElement;
-
-            if (buttonAncestor) {
-                targetNode = buttonAncestor;
-            }
+            targetNode = execLogElement.closest('[role="button"]') ||
+                execLogElement.closest('button') ||
+                execLogElement;
         } else {
-            // Fallback to "Debug" if Execution log is not found (e.g. narrowed window)
-            const debugBtn = buttons.find(b => b.textContent.includes('Debug'));
+            // Fallback to "Debug"
+            const debugBtn = buttons.find(b => b.textContent && b.textContent.includes('Debug') && b.offsetParent !== null);
             if (debugBtn) targetNode = debugBtn;
         }
 
         if (targetNode && targetNode.parentElement) {
             const container = targetNode.parentElement;
-            if (container && !document.getElementById('sflow-toolbar')) {
-                // Insert AFTER the target node
+            if (!document.getElementById('sflow-toolbar')) {
                 injectToolbarInline(container, targetNode.nextSibling);
-                obs.disconnect();
             }
         }
     });
 
-    // Store reference for potential cleanup
     toolbarObserver = observer;
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Safety timeout: disconnect observer after 30 seconds if toolbar not found
-    setTimeout(() => {
-        if (toolbarObserver && !document.getElementById('sflow-toolbar')) {
-
-            toolbarObserver.disconnect();
-            toolbarObserver = null;
+    // Handle SPA navigation events for immediate re-check
+    window.addEventListener('popstate', () => {
+        if (!document.getElementById('sflow-toolbar')) {
+            // Mutation observer will fire, but we can nudge it
         }
-    }, 30000);
+    });
+
+    window.addEventListener('hashchange', () => {
+        if (!document.getElementById('sflow-toolbar')) {
+            // Nudge
+        }
+    });
 }
 
 function injectToolbarInline(container, referenceNode) {

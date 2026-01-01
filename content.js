@@ -1,6 +1,8 @@
 // Content Script - ScriptFlow
 
-console.log('ScriptFlow: Content script loaded');
+// Debug mode - set to false for production
+const DEBUG = false;
+const log = (...args) => DEBUG && console.log('ScriptFlow:', ...args);
 
 // === THEME DEFINITIONS ===
 const THEMES = {
@@ -38,6 +40,7 @@ const THEMES = {
 let dashboardFixerInterval = null;
 let toolbarObserver = null;
 let settingsObserver = null;
+let toolbarCheckInterval = null;
 
 
 // === FEATURE STATE ===
@@ -56,7 +59,7 @@ const SVGs = {
     font: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>`,
     todo: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>`,
     snippet: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`,
-    command: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"></path></svg>`,
+    command: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>`,
     // Phase 2 Icons
     rainbow: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h4a8 8 0 0 0 8-8 8 8 0 0 0-8-8H4"></path><path d="M4 6v12"></path></svg>`,
     snippetAdd: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>`
@@ -116,6 +119,9 @@ async function init() {
     dashboardFixerInterval = setInterval(fixDashboardTheme, 2000);
 }
 
+// Cache for processed nodes to avoid redundant processing
+const processedNodes = new WeakSet();
+
 // === JS-BASED THEME ENFORCER (DEEP SCAN) ===
 function fixDashboardTheme() {
     // Only run if we are in a themed mode
@@ -125,7 +131,12 @@ function fixDashboardTheme() {
     // Helper to traverse DOM including Shadow Roots
     function traverse(node, callback) {
         if (!node) return;
+
+        // Skip already processed nodes (optimization)
+        if (processedNodes.has(node)) return;
+
         callback(node);
+        processedNodes.add(node);
 
         // Check for Shadow Root
         if (node.shadowRoot) {
@@ -609,54 +620,173 @@ function waitForToolbarAndInject() {
     // If already watching, don't start another one
     if (toolbarObserver) return;
 
-    const observer = new MutationObserver(() => {
-        // If toolbar already exists, nothing to do
-        if (document.getElementById('sflow-toolbar')) return;
+    let lastToolbarCheck = 0;
+    const DEBOUNCE_MS = 100; // Prevent excessive calls
 
-        const buttons = Array.from(document.querySelectorAll('button, div[role="button"]'));
+    const checkAndInject = () => {
+        // Debounce rapid calls
+        const now = Date.now();
+        if (now - lastToolbarCheck < DEBOUNCE_MS) return;
+        lastToolbarCheck = now;
 
+        const existingToolbar = document.getElementById('sflow-toolbar');
+
+        // Helper function to check if element is truly visible (including parent chain)
+        const isElementVisible = (el) => {
+            if (!el || !document.body.contains(el)) return false;
+            if (el.offsetParent === null && getComputedStyle(el).position !== 'fixed') return false;
+
+            let current = el;
+            while (current && current !== document.body) {
+                const style = getComputedStyle(current);
+                if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+                    return false;
+                }
+                current = current.parentElement;
+            }
+            return true;
+        };
+
+        // If toolbar exists, check if it's actually visible
+        if (existingToolbar && document.body.contains(existingToolbar)) {
+            const toolbarVisible = isElementVisible(existingToolbar);
+
+            if (toolbarVisible) {
+                // Toolbar is visible, check if listeners are attached
+                if (!existingToolbar.dataset.listenersAttached) {
+                    log('Re-attaching toolbar listeners');
+                    setupToolbarListeners();
+                    existingToolbar.dataset.listenersAttached = 'true';
+                }
+                return;
+            } else {
+                // Toolbar exists but is hidden (in cached view), remove it
+                log('Removing hidden toolbar from cached view');
+                existingToolbar.remove();
+            }
+        }
+
+        // Toolbar doesn't exist or was orphaned/hidden, need to inject
         // Find visible "Execution log" as anchor
         const allDivs = Array.from(document.querySelectorAll('div, button, span'));
-        const execLogElement = allDivs.find(el =>
-            el.textContent &&
-            el.textContent.trim() === 'Execution log' &&
-            el.offsetParent !== null
-        );
+        const execLogElement = allDivs.find(el => {
+            if (!el.textContent || el.textContent.trim() !== 'Execution log') return false;
+            return isElementVisible(el);
+        });
 
         let targetNode = null;
         if (execLogElement) {
             targetNode = execLogElement.closest('[role="button"]') ||
                 execLogElement.closest('button') ||
                 execLogElement;
+            log('Found Execution log anchor');
         } else {
             // Fallback to "Debug"
-            const debugBtn = buttons.find(b => b.textContent && b.textContent.includes('Debug') && b.offsetParent !== null);
-            if (debugBtn) targetNode = debugBtn;
-        }
-
-        if (targetNode && targetNode.parentElement) {
-            const container = targetNode.parentElement;
-            if (!document.getElementById('sflow-toolbar')) {
-                injectToolbarInline(container, targetNode.nextSibling);
+            const buttons = Array.from(document.querySelectorAll('button, div[role="button"]'));
+            const debugBtn = buttons.find(b => {
+                if (!b.textContent || !b.textContent.includes('Debug')) return false;
+                return isElementVisible(b);
+            });
+            if (debugBtn) {
+                targetNode = debugBtn;
+                log('Found Debug anchor');
             }
         }
-    });
 
+        if (!targetNode) {
+            // No anchor found - editor toolbar not visible
+            log('No anchor found (Execution log or Debug button not visible)');
+            return;
+        }
+
+        if (targetNode.parentElement) {
+            const container = targetNode.parentElement;
+
+            // Verify container is visible
+            if (!isElementVisible(container)) {
+                log('Target container is hidden, skipping injection');
+                return;
+            }
+
+            // Remove any orphaned toolbar first
+            const orphanedToolbar = document.getElementById('sflow-toolbar');
+            if (orphanedToolbar) {
+                log('Removing orphaned toolbar');
+                orphanedToolbar.remove();
+            }
+
+            injectToolbarInline(container, targetNode.nextSibling);
+            log('Toolbar injected into visible container');
+        }
+    };
+
+    // 1. Initial Check
+    checkAndInject();
+
+    // 2. Mutation Observer for rapid Response - watch for attribute changes too
+    const observer = new MutationObserver((mutations) => {
+        // Check if any mutation affected our toolbar area
+        let shouldCheck = false;
+        for (const mutation of mutations) {
+            if (mutation.type === 'childList') {
+                // Check if toolbar was removed
+                for (const node of mutation.removedNodes) {
+                    if (node.id === 'sflow-toolbar' ||
+                        (node.querySelector && node.querySelector('#sflow-toolbar'))) {
+                        shouldCheck = true;
+                        break;
+                    }
+                }
+                // Or if new nodes might be the toolbar area
+                if (mutation.addedNodes.length > 0) {
+                    shouldCheck = true;
+                }
+            }
+            // Also check attribute changes (style/class) - GAS might toggle visibility this way
+            if (mutation.type === 'attributes') {
+                const attr = mutation.attributeName;
+                if (attr === 'style' || attr === 'class' || attr === 'hidden') {
+                    // Check if this affects our toolbar's visibility
+                    const toolbar = document.getElementById('sflow-toolbar');
+                    if (toolbar) {
+                        const target = mutation.target;
+                        // If the mutation target is an ancestor of toolbar, check visibility
+                        if (target.contains && target.contains(toolbar)) {
+                            shouldCheck = true;
+                        }
+                    } else {
+                        // No toolbar, might need to inject
+                        shouldCheck = true;
+                    }
+                }
+            }
+            if (shouldCheck) break;
+        }
+        if (shouldCheck) {
+            checkAndInject();
+        }
+    });
     toolbarObserver = observer;
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
 
-    // Handle SPA navigation events for immediate re-check
-    window.addEventListener('popstate', () => {
-        if (!document.getElementById('sflow-toolbar')) {
-            // Mutation observer will fire, but we can nudge it
+    // 3. Periodic Health Check - store reference for cleanup
+    if (toolbarCheckInterval) clearInterval(toolbarCheckInterval);
+    toolbarCheckInterval = setInterval(checkAndInject, 500);
+
+    // 4. Navigation listeners
+    const handleNavigation = () => setTimeout(checkAndInject, 100);
+    window.addEventListener('popstate', handleNavigation);
+    window.addEventListener('hashchange', handleNavigation);
+
+    // 5. Visibility change
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            setTimeout(checkAndInject, 100);
         }
     });
 
-    window.addEventListener('hashchange', () => {
-        if (!document.getElementById('sflow-toolbar')) {
-            // Nudge
-        }
-    });
+    // 6. Focus listener
+    window.addEventListener('focus', handleNavigation);
 }
 
 function injectToolbarInline(container, referenceNode) {
@@ -698,20 +828,6 @@ function injectToolbarInline(container, referenceNode) {
             </select>
         </div>
 
-        <div class="sflow-divider"></div>
-
-        <div class="sflow-control-group">
-            <button id="sflow-todo-toggle" class="sflow-icon-btn sflow-tooltip" data-tooltip="Highlight TODO/FIXME">
-                ${SVGs.todo}
-            </button>
-        </div>
-
-        <div class="sflow-control-group">
-            <button id="sflow-rainbow-toggle" class="sflow-icon-btn sflow-tooltip" data-tooltip="Rainbow Brackets">
-                ${SVGs.rainbow}
-            </button>
-        </div>
-
         <div class="sflow-control-group">
             <button id="sflow-snippet-btn" class="sflow-icon-btn sflow-tooltip" data-tooltip="View Snippets (type + Tab)">
                 ${SVGs.snippet}
@@ -733,32 +849,51 @@ function injectToolbarInline(container, referenceNode) {
     } else {
         container.appendChild(toolbar);
     }
+
+    // Mark that listeners are attached
+    toolbar.dataset.listenersAttached = 'true';
     setupToolbarListeners();
 }
 
+// Global AbortController for toolbar listeners - allows us to cleanup and re-attach
+let toolbarListenerController = null;
+
 function setupToolbarListeners() {
+    // Abort any previous listeners to prevent duplicates
+    if (toolbarListenerController) {
+        toolbarListenerController.abort();
+    }
+    toolbarListenerController = new AbortController();
+    const signal = toolbarListenerController.signal;
+
     // Theme Toggle (Sun/Moon)
     const toggleBtn = document.getElementById('sflow-theme-toggle');
     const themeSelect = document.getElementById('sflow-theme-select');
+
+    // Guard: if elements don't exist, abort
+    if (!toggleBtn || !themeSelect) {
+        console.warn('ScriptFlow: Toolbar elements not found, cannot attach listeners');
+        return;
+    }
 
     toggleBtn.addEventListener('click', () => {
         const currentTheme = themeSelect.value;
         const newTheme = currentTheme === 'default' ? 'dracula' : 'default';
 
         updateThemeState(newTheme);
-    });
+    }, { signal });
 
     // Theme Dropdown
     themeSelect.addEventListener('change', (e) => {
         updateThemeState(e.target.value);
-    });
+    }, { signal });
 
     // === NEW FEATURE LISTENERS ===
 
     // Zen Mode Button
     const zenBtn = document.getElementById('sflow-zen-toggle');
     if (zenBtn) {
-        zenBtn.addEventListener('click', toggleZenMode);
+        zenBtn.addEventListener('click', toggleZenMode, { signal });
     }
 
     // Font Selector
@@ -766,31 +901,31 @@ function setupToolbarListeners() {
     if (fontSelect) {
         fontSelect.addEventListener('change', (e) => {
             applyFont(e.target.value);
-        });
+        }, { signal });
     }
 
     // TODO Highlight Button
     const todoBtn = document.getElementById('sflow-todo-toggle');
     if (todoBtn) {
-        todoBtn.addEventListener('click', toggleTodoHighlight);
+        todoBtn.addEventListener('click', toggleTodoHighlight, { signal });
     }
 
     // Rainbow Brackets Button
     const rainbowBtn = document.getElementById('sflow-rainbow-toggle');
     if (rainbowBtn) {
-        rainbowBtn.addEventListener('click', toggleRainbowBrackets);
+        rainbowBtn.addEventListener('click', toggleRainbowBrackets, { signal });
     }
 
     // Snippet Manager Button
     const snippetBtn = document.getElementById('sflow-snippet-btn');
     if (snippetBtn) {
-        snippetBtn.addEventListener('click', openSnippetManager);
+        snippetBtn.addEventListener('click', openSnippetManager, { signal });
     }
 
     // Command Palette Button
     const cmdBtn = document.getElementById('sflow-command-palette');
     if (cmdBtn) {
-        cmdBtn.addEventListener('click', openCommandPalette);
+        cmdBtn.addEventListener('click', openCommandPalette, { signal });
     }
 
     // Initialize Snippet System
@@ -1852,7 +1987,7 @@ function escapeHtml(str) {
 // Initialize snippet system
 function initSnippets() {
     setupSnippetListener();
-    console.log('ScriptFlow: Snippet system initialized with', Object.keys(customSnippets).length, 'snippets');
+    log('Snippet system initialized with', Object.keys(customSnippets).length, 'snippets');
 }
 
 

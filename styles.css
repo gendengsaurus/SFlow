@@ -1466,3 +1466,11 @@ body.sflow-theme-nord .sflow-ac-trigger {
 body.sflow-theme-nord .sflow-ac-trigger strong {
     color: #bf616a;
 }
+
+/* =========================================
+   AUTHORIZATION DIALOG TEXT FIX
+   ========================================= */
+body[class*="sflow-theme-"] .uW2Fw-k2Wrsb-fmcmS,
+body[class*="sflow-theme-"] [jsname="MdSI6d"] {
+    color: var(--fg-primary) !important;
+}

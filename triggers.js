@@ -44,7 +44,7 @@ class TriggerService {
         // Simple heuristic: Look for text that looks like a function name followed by "Head" or "Time-driven"
         // This is fragile. A better approach for the "Add Trigger" is to provide code snippets.
 
-        console.log('ScriptFlow: Parsing triggers (Length: ' + html.length + ')');
+        // Debug logging disabled for production
 
         // If we really want to parse, we'd need to inspect `AF_initDataCallback`
         // regex: /AF_initDataCallback\s*\(\s*{key:\s*'ds:(\d+)'/g

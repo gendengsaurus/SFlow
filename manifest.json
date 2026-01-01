@@ -1,12 +1,11 @@
 {
     "manifest_version": 3,
     "name": "ScriptFlow - Transform Your Apps Script Editor",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "description": "Dark themes, Zen mode, code snippets & productivity tools for Google Apps Script. Make coding beautiful.",
     "permissions": [
         "storage",
-        "activeTab",
-        "scripting"
+        "activeTab"
     ],
     "host_permissions": [
         "https://script.google.com/*"

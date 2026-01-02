@@ -14,24 +14,24 @@ const THEMES = {
         border: '#dadce0'
     },
     dracula: {
-        accent: '#BD93F9',
-        fgPrimary: '#E2E4E9', // Softer Off-White (was #F8F8F2)
-        fgSecondary: '#6272A4',
-        bgPrimary: '#222430', // Deeper, less glare (was #282A36)
+        accent: '#D4B3FF', // Vibrant Purple
+        fgPrimary: '#FFFFFF', // Pure white for max contrast
+        fgSecondary: '#94A3D3', // Lighter blue-grey
+        bgPrimary: '#1E1F29', // Slightly darker for color pop
         border: '#44475A'
     },
     monokai: {
-        accent: '#FFD866', // Pro Yellow (Softer than #A6E22E green)
-        fgPrimary: '#FCFCFA', // Pro White
-        fgSecondary: '#727072',
-        bgPrimary: '#2D2A2E', // Monokai Pro (Dark Grey > Muddy Brown)
+        accent: '#C1FF22', // Vibrant Lime Green
+        fgPrimary: '#FFFFFF',
+        fgSecondary: '#939293',
+        bgPrimary: '#191919', // Pure blackish for pop
         border: '#403E41'
     },
     nord: {
-        accent: '#88C0D0',
-        fgPrimary: '#D8DEE9',
-        fgSecondary: '#4C566A',
-        bgPrimary: '#2E3440', // Nord is already soft & good
+        accent: '#9FE9FF', // Bright Frost Blue
+        fgPrimary: '#ECEFF4',
+        fgSecondary: '#81A1C1',
+        bgPrimary: '#242933', // Darker polar night
         border: '#434C5E'
     }
 };
@@ -229,9 +229,9 @@ function fixDashboardTheme() {
             node.closest('.Hjavoc') ||
             node.matches('.oLvPce')
         )) {
-            node.style.setProperty('color', '#ffffff', 'important');
+            node.style.setProperty('color', 'var(--fg-primary)', 'important');
             if (node.tagName === 'text' || node.tagName === 'tspan') {
-                node.style.setProperty('fill', '#ffffff', 'important');
+                node.style.setProperty('fill', 'var(--fg-primary)', 'important');
             }
             return; // Done for this node
         }
@@ -301,7 +301,7 @@ function fixDashboardTheme() {
             node.matches('.dcch3') ||
             node.matches('.Y1Vbl')
         )) {
-            node.style.setProperty('color', '#ffffff', 'important');
+            node.style.setProperty('color', 'var(--fg-primary)', 'important');
         }
 
         // Group F: FORM ELEMENTS & LINKS (Generic)
@@ -337,17 +337,17 @@ function fixDashboardTheme() {
 
         // Filter "Add a filter" Label (.PK2PH) -> White
         if (node.matches && node.matches('.PK2PH')) {
-            node.style.setProperty('color', '#ffffff', 'important');
+            node.style.setProperty('color', 'var(--fg-primary)', 'important');
             // The icon is usually a child span .DPvwYc or similar
             const icons = node.querySelectorAll('.DPvwYc, .Ce1Y1c, span[aria-hidden="true"]');
             icons.forEach(icon => {
-                icon.style.setProperty('color', '#ffffff', 'important');
+                icon.style.setProperty('color', 'var(--accent-color)', 'important');
             });
         }
 
         // Specific Icon Class from User Dump (.DPvwYc) -> White
         if (node.matches && (node.matches('.DPvwYc') || node.matches('.Ce1Y1c'))) {
-            node.style.setProperty('color', '#ffffff', 'important');
+            node.style.setProperty('color', 'var(--accent-color)', 'important');
         }
 
         // Dropdown Items (Filter Lists etc) -> White Text, Accent BG on Hover ONLY
@@ -356,10 +356,12 @@ function fixDashboardTheme() {
             node.matches('.MocG8c') ||
             node.matches('.OA0qHb') ||
             node.matches('.MkjOTb') ||
+            node.matches('.z80M1') || // New: Menu item class
             node.getAttribute('role') === 'option' ||
+            node.getAttribute('role') === 'menuitem' || // New: General menu items
             node.matches('.dEOOab')
         )) {
-            // Default State - White text on transparent background
+            // Default State - Thematic text on transparent/theme-based (handled by container)
             node.style.setProperty('color', 'var(--fg-primary)', 'important');
             node.style.setProperty('background-color', 'transparent', 'important');
             node.style.setProperty('cursor', 'pointer', 'important');
@@ -395,13 +397,13 @@ function fixDashboardTheme() {
             // Neutral State
             node.style.setProperty('background', 'transparent', 'important');
             node.style.setProperty('background-color', 'transparent', 'important');
-            node.style.setProperty('color', '#ffffff', 'important');
+            node.style.setProperty('color', 'var(--fg-primary)', 'important');
             node.style.setProperty('border', '1px solid var(--border-color)', 'important');
             node.style.removeProperty('box-shadow');
 
             const children = node.querySelectorAll('.vRMGwf, .oJeWuf, .Ce1Y1c');
             children.forEach(child => {
-                child.style.setProperty('color', '#ffffff', 'important');
+                child.style.setProperty('color', 'var(--fg-primary)', 'important');
             });
 
             // Add Hover Listeners for Trigger too (per user request "ungu kalau hover aja")
@@ -432,6 +434,8 @@ function fixDashboardTheme() {
         if (node.matches && (
             node.matches('.u3WVdc') ||
             node.matches('.jBmls') ||
+            node.matches('.JAPqpe') || // New: Dropdown container
+            node.matches('.K0NPx') || // New: Dropdown container variant
             (node.getAttribute('role') === 'listbox' &&
                 !node.classList.contains('jgvuAb') &&
                 !node.classList.contains('VsRsme') &&
@@ -447,64 +451,31 @@ function fixDashboardTheme() {
         if (node.matches && node.matches('.nfFC5c')) {
             // Reset to transparent/inherit since we are styling the parent TH now
             node.style.setProperty('background', 'transparent', 'important');
-            node.style.setProperty('color', '#ffffff', 'important');
+            node.style.setProperty('color', 'var(--fg-primary)', 'important');
         }
 
         // Table Header Cells (.AwADOd, .bXw5fc, .U6mvGe) -> Dark Theme BG & White Text
-        if (node.matches && (
+        if (node.tagName === 'TH' || (node.matches && (
             node.matches('.AwADOd') ||
             node.matches('.bXw5fc') ||
-            node.matches('.U6mvGe') ||
-            node.closest('th[role="columnheader"]') // Robustness for all headers
-        )) {
-            node.style.setProperty('background-color', 'var(--background-color)', 'important'); // Dark BG
-            node.style.setProperty('color', '#ffffff', 'important'); // White Text
-
-            // Ensure child spans (like .T0UZd and .nfFC5c) also get white text if they don't inherit
-            const children = node.querySelectorAll('*');
-            children.forEach(child => {
-                child.style.setProperty('color', '#ffffff', 'important');
-            });
+            node.matches('.U6mvGe')
+        ))) {
+            node.classList.add('sflow-table-header-themed');
         }
 
         // Table Rows (.aYGNvc, .wkZkfd, and newly identified .k5aVkf, .DIl86b) 
         // Force Theme BG and White Text (fixes "White on White" selection issue)
         // AND handle Hover effects manually since we are forcing inline styles.
-        if (node.matches && (
+        if (node.tagName === 'TR' || (node.matches && (
             node.matches('.aYGNvc') ||
             node.matches('.wkZkfd') ||
             node.matches('.k5aVkf') ||
             node.matches('.DIl86b') ||
             node.matches('.XEfnH') ||
-            node.matches('.Nofwhd') ||
-            node.closest('tr') // Catch-all for rows
-        )) {
-            // Default State
-            node.style.setProperty('background', 'var(--background-color)', 'important');
-            node.style.setProperty('color', '#ffffff', 'important');
-            node.style.setProperty('cursor', 'pointer', 'important'); // Improve UX
-
-            // Ensure cells inside inherit or force transparent
-            const cells = node.querySelectorAll('td');
-            cells.forEach(cell => {
-                cell.style.setProperty('background', 'transparent', 'important');
-                cell.style.setProperty('color', '#ffffff', 'important');
-            });
-
-            // Attach Hover Listeners (use dataset to avoid duplicates)
-            if (!node.dataset.hasThemeHover) {
-                node.dataset.hasThemeHover = 'true';
-
-                node.addEventListener('mouseenter', () => {
-                    // Check if it's the current row or generally just highlight
-                    // Google Dark Hover Color approx #3c4043 or rgba(255,255,255,0.08)
-                    node.style.setProperty('background', '#3c4043', 'important');
-                });
-
-                node.addEventListener('mouseleave', () => {
-                    node.style.setProperty('background', 'var(--background-color)', 'important');
-                });
-            }
+            node.matches('.Nofwhd')
+        ))) {
+            // Only add if it's the actual row element, not something inside it
+            node.classList.add('sflow-table-row-themed');
         }
 
         // Account Dialog (.XKSfm-Sx9Kwc, role="dialog") -> Dark Theme
@@ -514,7 +485,7 @@ function fixDashboardTheme() {
         )) {
             // Main Dialog Container
             node.style.setProperty('background-color', '#2d2d2d', 'important'); // Slightly lighter dark for dialogs
-            node.style.setProperty('color', '#ffffff', 'important');
+            node.style.setProperty('color', 'var(--fg-primary)', 'important');
             node.style.setProperty('border', '1px solid var(--border-color)', 'important');
             node.style.setProperty('box-shadow', '0 24px 38px 3px rgba(0,0,0,0.14), 0 9px 46px 8px rgba(0,0,0,0.12), 0 11px 15px -7px rgba(0,0,0,0.2)', 'important');
 
@@ -522,7 +493,7 @@ function fixDashboardTheme() {
             // Use specific selectors from user dump for precision
             const textElements = node.querySelectorAll('.XKSfm-Sx9Kwc-r4nke-fmcmS, .auswjd-mzNpsf-Sx9Kwc-xvr5H, .auswjd-mzNpsf-Sx9Kwc-KVuj8d-V1ur5d, [role="heading"], div');
             textElements.forEach(el => {
-                el.style.setProperty('color', '#ffffff', 'important');
+                el.style.setProperty('color', 'var(--fg-primary)', 'important');
             });
 
             // Dialog Buttons
@@ -1127,6 +1098,12 @@ function cleanupThemeStyles() {
             el.style.removeProperty('opacity');
             el.style.removeProperty('box-shadow');
         }
+    });
+
+    // Remove themed table classes
+    const tableElements = document.querySelectorAll('.sflow-table-header-themed, .sflow-table-row-themed');
+    tableElements.forEach(el => {
+        el.classList.remove('sflow-table-header-themed', 'sflow-table-row-themed');
     });
 
     // Clear the processed nodes cache

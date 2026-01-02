@@ -245,6 +245,9 @@ body[class*="sflow-theme-"] {
     --syntax-property: #9cdcfe;
     --syntax-operator: #d4d4d4;
     --syntax-constant: #4fc1ff;
+
+    /* Legacy / Compat Alias */
+    --background-color: var(--bg-primary);
 }
 
 /* =========================================
@@ -253,32 +256,13 @@ body[class*="sflow-theme-"] {
    ========================================= */
 body.sflow-theme-dracula {
     /* === CORE COLORS === */
-    --bg-primary: #282A36;
-    /* Main Background */
-    --bg-dark: #191A21;
-    /* Background Dark */
-    --bg-secondary: #21222C;
-    /* Surface / Cards */
-    --bg-hover: #2A2B36;
-    /* Surface Hover */
-    --border-color: #44475A;
-    /* Border / Divider */
-    --bg-selection: #44475A;
-    /* Selection / Current Line */
-
-    /* === TEXT COLORS === */
-    --fg-primary: #F8F8F2;
-    /* Text Primary */
-    --fg-secondary: #6272A4;
-    /* Text Secondary / Muted */
-    --fg-disabled: #44475A;
-    /* Text Disabled */
-
-    /* === ACCENT COLORS === */
-    --accent-color: #BD93F9;
-    /* Primary (Purple) */
-    --accent-secondary: #FF79C6;
-    /* Secondary (Pink) */
+    --bg-primary: #1E1F29;
+    --bg-dark: #14151B;
+    --bg-secondary: #282A36;
+    --fg-primary: #FFFFFF;
+    --fg-secondary: #94A3D3;
+    --accent-color: #D4B3FF;
+    --accent-secondary: #FF92DF;
     --color-info: #8BE9FD;
     /* Info (Cyan) */
     --color-success: #50FA7B;
@@ -326,32 +310,13 @@ body.sflow-theme-dracula {
    ========================================= */
 body.sflow-theme-monokai {
     /* === CORE COLORS === */
-    --bg-primary: #272822;
-    /* Background */
-    --bg-dark: #1e1f1c;
-    /* Background Dark */
-    --bg-secondary: #1e1f1c;
-    /* Surface / Sidebar */
-    --bg-hover: #3e3d32;
-    /* Surface Hover */
-    --border-color: #49483e;
-    /* Border */
-    --bg-selection: #49483e;
-    /* Selection */
-
-    /* === TEXT COLORS === */
-    --fg-primary: #f8f8f2;
-    /* Text Primary */
-    --fg-secondary: #75715e;
-    /* Text Secondary */
-    --fg-disabled: #49483e;
-    /* Text Disabled */
-
-    /* === ACCENT COLORS === */
-    --accent-color: #a6e22e;
-    /* Green accent */
-    --accent-secondary: #f92672;
-    /* Pink */
+    --bg-primary: #191919;
+    --bg-dark: #121212;
+    --bg-secondary: #252525;
+    --fg-primary: #FFFFFF;
+    --fg-secondary: #939293;
+    --accent-color: #C1FF22;
+    --accent-secondary: #FF1493;
     --color-info: #66d9ef;
     /* Blue */
     --color-success: #a6e22e;
@@ -399,31 +364,20 @@ body.sflow-theme-monokai {
    ========================================= */
 body.sflow-theme-nord {
     /* === CORE COLORS - Polar Night === */
-    --bg-primary: #2e3440;
-    /* nord0 */
-    --bg-dark: #242933;
-    /* Darker than nord0 */
-    --bg-secondary: #3b4252;
-    /* nord1 */
+    --bg-primary: #242933;
+    --bg-dark: #1B1E25;
+    --bg-secondary: #3B4252;
     --bg-hover: #434c5e;
-    /* nord2 */
     --border-color: #4c566a;
-    /* nord3 */
     --bg-selection: #434c5e;
     /* nord2 */
 
-    /* === TEXT COLORS - Snow Storm === */
-    --fg-primary: #eceff4;
-    /* nord6 */
-    --fg-secondary: #e5e9f0;
-    /* nord5 */
+    --fg-primary: #FFFFFF;
+    --fg-secondary: #9FE9FF;
     --fg-disabled: #4c566a;
-    /* nord3 */
 
-    /* === ACCENT COLORS - Frost & Aurora === */
-    --accent-color: #88c0d0;
-    /* nord8 Frost */
-    --accent-secondary: #81a1c1;
+    --accent-color: #9FE9FF;
+    --accent-secondary: #88C0D0;
     /* nord9 */
     --color-info: #88c0d0;
     /* nord8 */
@@ -1757,4 +1711,111 @@ body.sflow-theme-nord .sflow-ac-trigger strong {
 body[class*="sflow-theme-"] .uW2Fw-k2Wrsb-fmcmS,
 body[class*="sflow-theme-"] [jsname="MdSI6d"] {
     color: var(--fg-primary) !important;
+}
+
+/* =========================================
+   THEMATIC TABLE STYLES
+   ========================================= */
+
+body[class*="sflow-theme-"] .sflow-table-header-themed {
+    background-color: var(--bg-primary) !important;
+    background: var(--bg-primary) !important;
+    color: var(--accent-color) !important;
+    font-weight: 800 !important;
+    border-bottom: 2px solid var(--accent-color) !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 11px;
+}
+
+body[class*="sflow-theme-"] .sflow-table-header-themed * {
+    color: inherit !important;
+}
+
+/* Metadata in header (like "Deployment") - slightly more muted accent */
+body[class*="sflow-theme-"] .sflow-table-header-themed .nfFC5c,
+body[class*="sflow-theme-"] .sflow-table-header-themed .T0UZd {
+    color: var(--accent-color) !important;
+    opacity: 0.9 !important;
+}
+
+body[class*="sflow-theme-"] .sflow-table-row-themed {
+    background-color: var(--bg-primary) !important;
+    background: var(--bg-primary) !important;
+    color: var(--fg-primary) !important;
+    cursor: default !important;
+    /* Reset to default, only items inside might be pointers */
+    transition: background-color 0.15s ease;
+    border-bottom: 1px solid var(--border-color) !important;
+    position: relative;
+}
+
+body[class*="sflow-theme-"] .sflow-table-row-themed:hover {
+    background-color: var(--bg-secondary) !important;
+    background: var(--bg-secondary) !important;
+}
+
+/* Subtle indicator on the left side of the row - VS Code style */
+body[class*="sflow-theme-"] .sflow-table-row-themed::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: transparent;
+    transition: background-color 0.2s ease;
+    z-index: 10;
+}
+
+body[class*="sflow-theme-"] .sflow-table-row-themed:hover::before {
+    background-color: var(--accent-color);
+}
+
+body[class*="sflow-theme-"] .sflow-table-row-themed td {
+    background-color: transparent !important;
+    background: transparent !important;
+    color: inherit !important;
+}
+
+/* Secondary data (like "Owned by", "Last run") */
+body[class*="sflow-theme-"] .sflow-table-row-themed td:nth-child(even) {
+    color: var(--fg-secondary) !important;
+}
+
+/* Specific fix for the provided HTML dump structure */
+body[class*="sflow-theme-"] .sflow-table-row-themed .mUsKed,
+body[class*="sflow-theme-"] .sflow-table-row-themed .rX09Ub,
+body[class*="sflow-theme-"] .sflow-table-row-themed .pof95 {
+    background-color: transparent !important;
+    background: transparent !important;
+    color: inherit !important;
+}
+
+/* Action Icons in Table */
+body[class*="sflow-theme-"] .sflow-table-row-themed .DPvwYc {
+    color: var(--accent-color) !important;
+    transition: all 0.2s ease;
+}
+
+body[class*="sflow-theme-"] .sflow-table-row-themed:hover .DPvwYc {
+    transform: scale(1.2);
+    color: var(--accent-secondary) !important;
+    filter: drop-shadow(0 0 5px var(--accent-color));
+}
+/* DROPDOWN MENUS */
+body[class*="sflow-theme-"] .JAPqpe.K0NPx {
+    background-color: var(--bg-secondary) !important;
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 4px !important;
+}
+
+body[class*="sflow-theme-"] .z80M1 {
+    color: var(--fg-primary) !important;
+}
+
+body[class*="sflow-theme-"] .z80M1:hover {
+    background-color: var(--accent-color) !important;
+    color: #FFFFFF !important;
 }

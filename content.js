@@ -1855,7 +1855,7 @@ function handleSnippetKeydown(e) {
     }
 
     // Handle popup navigation if visible
-    if (snippetPopup) {
+    if (snippetPopup && snippetPopup.style.display !== 'none') {
         if (e.key === 'ArrowDown') {
             e.preventDefault();
             e.stopPropagation();

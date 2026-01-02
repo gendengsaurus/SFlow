@@ -25,6 +25,7 @@ All notable changes to **ScriptFlow** will be documented in this file.
 - Fixed "hover leakage" where row indicators appeared in the middle of table columns.
 - Corrected white-on-white text issues in several dashboard scenarios.
 - Smoothed out hover transitions for better performance on large trigger lists.
+- **Fixed Snippet Interception**: Resolved a bug where pressing `Enter` would get stuck after using a code snippet. Normal line breaking now works correctly after expansion.
 
 ---
 

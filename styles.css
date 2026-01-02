@@ -554,50 +554,58 @@ body[class*="sflow-theme-"] .lb-item {
    =========================================== */
 
 /* Selected Item - Theme compliant (GAS-specific classes) */
+/* File list uses <li role="option"> with .UeVsd class for selected items */
+body[class*="sflow-theme-"] li[role="option"][aria-selected="true"],
+body[class*="sflow-theme-"] li.UeVsd {
+    background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-color) 3px, var(--bg-selection) 3px, var(--bg-selection) 100%) !important;
+    border-radius: 4px !important;
+    margin: 2px 4px !important;
+}
+
+/* Selected item text - use accent color */
+body[class*="sflow-theme-"] li[role="option"][aria-selected="true"] *,
+body[class*="sflow-theme-"] li.UeVsd * {
+    color: var(--accent-color) !important;
+    background-color: transparent !important;
+}
+
+/* Treeitem selected (for other areas) */
 body[class*="sflow-theme-"] div[role="treeitem"][aria-selected="true"],
+body[class*="sflow-theme-"] .lb-item[aria-selected="true"] {
+    background-color: var(--bg-selection) !important;
+    border-left: 3px solid var(--accent-color) !important;
+    border-radius: 4px !important;
+}
+
 body[class*="sflow-theme-"] div[role="treeitem"][aria-selected="true"] *,
-body[class*="sflow-theme-"] .lb-item[aria-selected="true"],
-body[class*="sflow-theme-"] .lb-item[aria-selected="true"] *,
-body[class*="sflow-theme-"] .StrnGf-VfPpkd-rymPhb-ibnC6b,
-body[class*="sflow-theme-"] .lMUT6c,
-body[class*="sflow-theme-"] .Ftje6d,
-body[class*="sflow-theme-"] .UeVsd,
-body[class*="sflow-theme-"] [class*="ibnC6b"] {
-    background-color: var(--bg-selection) !important;
-    color: var(--fg-primary) !important;
+body[class*="sflow-theme-"] .lb-item[aria-selected="true"] * {
+    color: var(--accent-color) !important;
 }
 
-/* Left nav icon selection (hcgnWc = selected state) - aggressive override */
-body[class*="sflow-theme-"] .hcgnWc,
-body[class*="sflow-theme-"] .hcgnWc *,
-body[class*="sflow-theme-"] .kcW8jf.hcgnWc,
-body[class*="sflow-theme-"] .kcW8jf.hcgnWc *,
-body[class*="sflow-theme-"] .kcW8jf.hcgnWc::before,
-body[class*="sflow-theme-"] .kcW8jf.hcgnWc::after,
+/* Left nav icon selection (hcgnWc = selected state) - circular selection */
 body[class*="sflow-theme-"] .hcgnWc .mtgyif,
-body[class*="sflow-theme-"] .hcgnWc .mtgyif::before,
-body[class*="sflow-theme-"] .hcgnWc .mtgyif::after {
-    background-color: var(--bg-selection) !important;
+body[class*="sflow-theme-"] .kcW8jf.hcgnWc .mtgyif {
     background: var(--bg-selection) !important;
-}
-
-/* Make selection circular */
-body[class*="sflow-theme-"] .hcgnWc .mtgyif {
     border-radius: 50% !important;
 }
 
-/* Ensure ALL left nav icons are white */
-body[class*="sflow-theme-"] .kcW8jf .google-material-icons,
-body[class*="sflow-theme-"] .mtgyif i,
-body[class*="sflow-theme-"] .hcgnWc i {
-    color: var(--fg-primary) !important;
+/* Override the ::before pseudo element that creates white circle */
+body[class*="sflow-theme-"] .hcgnWc .mtgyif::before,
+body[class*="sflow-theme-"] .hcgnWc .mtgyif::after,
+body[class*="sflow-theme-"] .kcW8jf.hcgnWc::before,
+body[class*="sflow-theme-"] .kcW8jf.hcgnWc::after {
+    background-color: transparent !important;
+    background: transparent !important;
 }
 
-/* Left accent border for selected item */
-body[class*="sflow-theme-"] div[role="treeitem"][aria-selected="true"],
-body[class*="sflow-theme-"] .lMUT6c {
-    border-left: 3px solid var(--accent-color) !important;
-    padding-left: 5px;
+/* Left nav icons - keep white color */
+body[class*="sflow-theme-"] .kcW8jf .google-material-icons,
+body[class*="sflow-theme-"] .mtgyif i,
+body[class*="sflow-theme-"] .hcgnWc i,
+body[class*="sflow-theme-"] .hcgnWc svg,
+body[class*="sflow-theme-"] .kcW8jf svg {
+    color: var(--fg-primary) !important;
+    fill: var(--fg-primary) !important;
 }
 
 /* Hover State - uses hover overlay */
@@ -722,6 +730,282 @@ body[class*="sflow-theme-"] .monaco-editor .core-guide-indent-active {
     opacity: 0.5;
 }
 
+
+/* =========================================
+   EXECUTION LOG PANEL
+   ========================================= */
+
+/* Main container */
+body[class*="sflow-theme-"] .Kp2okb,
+body[class*="sflow-theme-"] .R06Qgb {
+    background-color: var(--bg-secondary) !important;
+    border-left: 1px solid var(--border-color) !important;
+}
+
+/* Title "Execution log" */
+body[class*="sflow-theme-"] .oLvPce {
+    color: var(--fg-primary) !important;
+    font-weight: 500;
+    padding: 8px 12px !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    background: var(--bg-primary) !important;
+}
+
+/* Log list container */
+body[class*="sflow-theme-"] .gwHZe {
+    background-color: var(--bg-primary) !important;
+}
+
+/* Individual log row */
+body[class*="sflow-theme-"] .fHhrY {
+    background-color: transparent !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 4px 8px !important;
+}
+
+body[class*="sflow-theme-"] .fHhrY:hover {
+    background-color: var(--hover-overlay) !important;
+}
+
+/* Log columns common style */
+body[class*="sflow-theme-"] .lNXgjb {
+    color: var(--fg-primary) !important;
+}
+
+/* Timestamp column */
+body[class*="sflow-theme-"] .Akkarb {
+    color: var(--fg-secondary) !important;
+    opacity: 0.7;
+}
+
+/* Log type - Notice (start/complete) */
+body[class*="sflow-theme-"] .ptNZqd .ACpDpe {
+    color: var(--accent-color) !important;
+    font-weight: 600;
+}
+
+/* Log type - Info */
+body[class*="sflow-theme-"] .CTiAXc .ACpDpe {
+    color: var(--syntax-string) !important;
+}
+
+/* Log message */
+body[class*="sflow-theme-"] .BjuRcd {
+    color: var(--fg-primary) !important;
+}
+
+/* Notice log rows - subtle accent background */
+body[class*="sflow-theme-"] .fHhrY.ptNZqd {
+    background-color: rgba(var(--accent-rgb, 139, 233, 253), 0.1) !important;
+    border-left: 3px solid var(--accent-color) !important;
+}
+
+/* Close button */
+body[class*="sflow-theme-"] .R06Qgb .VfPpkd-Bz112c-LgbsSe {
+    color: var(--fg-primary) !important;
+}
+
+body[class*="sflow-theme-"] .R06Qgb .VfPpkd-Bz112c-LgbsSe:hover {
+    background-color: var(--hover-overlay) !important;
+}
+
+/* =========================================
+   GOOGLE TOOLBAR (Run, Debug, Save, etc.)
+   ========================================= */
+
+/* Toolbar container */
+body[class*="sflow-theme-"] .NGQehb {
+    background-color: var(--bg-secondary) !important;
+}
+
+/* Button groups */
+body[class*="sflow-theme-"] .yggLIc {
+    background-color: transparent !important;
+}
+
+/* All toolbar buttons */
+body[class*="sflow-theme-"] .RO63ad button,
+body[class*="sflow-theme-"] .VfPpkd-LgbsSe {
+    color: var(--fg-primary) !important;
+}
+
+/* Button icons (Material Icons) */
+body[class*="sflow-theme-"] .RO63ad .VfPpkd-kBDsod,
+body[class*="sflow-theme-"] .RO63ad .google-material-icons {
+    color: var(--fg-primary) !important;
+}
+
+/* SVG Icons in toolbar */
+body[class*="sflow-theme-"] .RO63ad .NSy2Hd,
+body[class*="sflow-theme-"] .RO63ad .TQNnQ {
+    fill: var(--fg-primary) !important;
+}
+
+/* Button text (Run, Debug, Stop, Execution log) */
+body[class*="sflow-theme-"] .RO63ad .VfPpkd-vQzf8d {
+    color: var(--fg-primary) !important;
+}
+
+/* Disabled buttons - more subtle */
+body[class*="sflow-theme-"] .RO63ad button[disabled],
+body[class*="sflow-theme-"] .RO63ad button[disabled] i,
+body[class*="sflow-theme-"] .RO63ad button[disabled] .TQNnQ {
+    color: var(--fg-secondary) !important;
+    fill: var(--fg-secondary) !important;
+    opacity: 0.5;
+}
+
+/* Button hover state */
+body[class*="sflow-theme-"] .RO63ad button:not([disabled]):hover {
+    background-color: var(--hover-overlay) !important;
+}
+
+/* Run button - accent color when enabled */
+body[class*="sflow-theme-"] button[jsname="XvjrTb"]:not([disabled]) i,
+body[class*="sflow-theme-"] button[jsname="XvjrTb"]:not([disabled]) .VfPpkd-vQzf8d {
+    color: var(--syntax-string) !important;
+    /* Green for Run */
+}
+
+/* Stop button - red when visible */
+body[class*="sflow-theme-"] button[jsname="GVC9cd"]:not([disabled]) i,
+body[class*="sflow-theme-"] button[jsname="GVC9cd"]:not([disabled]) .VfPpkd-vQzf8d {
+    color: #FF5555 !important;
+    /* Red for Stop */
+}
+
+/* Function dropdown */
+body[class*="sflow-theme-"] .jgvuAb.VsRsme {
+    background-color: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--fg-primary) !important;
+}
+
+body[class*="sflow-theme-"] .jgvuAb .vRMGwf {
+    color: var(--fg-primary) !important;
+}
+
+/* Function dropdown menu */
+body[class*="sflow-theme-"] .OA0qNb.ncFHed {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Dropdown items */
+body[class*="sflow-theme-"] .MocG8c {
+    color: var(--fg-primary) !important;
+    background-color: transparent !important;
+}
+
+body[class*="sflow-theme-"] .MocG8c:hover {
+    background-color: var(--hover-overlay) !important;
+}
+
+body[class*="sflow-theme-"] .MocG8c[aria-selected="true"] {
+    background-color: var(--bg-selection) !important;
+    color: var(--accent-color) !important;
+}
+
+/* Execution log button when active */
+body[class*="sflow-theme-"] button[jsname="mCW24e"] {
+    background-color: var(--bg-selection) !important;
+}
+
+body[class*="sflow-theme-"] button[jsname="mCW24e"] .VfPpkd-vQzf8d {
+    color: var(--accent-color) !important;
+}
+
+/* =========================================
+   FILTER/SEARCH INPUTS
+   ========================================= */
+
+/* Trigger filter input - only colors, preserve size */
+body[class*="sflow-theme-"] .Ax4B8,
+body[class*="sflow-theme-"] input.ZAGvjd,
+body[class*="sflow-theme-"] input[aria-label*="filter"] {
+    background-color: var(--bg-secondary) !important;
+    color: var(--fg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+body[class*="sflow-theme-"] .Ax4B8::placeholder,
+body[class*="sflow-theme-"] input.ZAGvjd::placeholder {
+    color: var(--fg-secondary) !important;
+    opacity: 0.7;
+}
+
+body[class*="sflow-theme-"] .Ax4B8:focus,
+body[class*="sflow-theme-"] input.ZAGvjd:focus {
+    border-color: var(--accent-color) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 139, 233, 253), 0.2) !important;
+}
+
+/* "Add a filter" Label and Placeholder */
+body[class*="sflow-theme-"] .PK2PH {
+    color: #ffffff !important;
+    opacity: 0.9;
+    z-index: 1;
+    /* Ensure it stays above input background but below text */
+    pointer-events: none;
+    /* Let clicks pass through to input */
+}
+
+/* The "+" icon inside "Add a filter" */
+body[class*="sflow-theme-"] .PK2PH .DPvwYc,
+body[class*="sflow-theme-"] .PK2PH .Ce1Y1c {
+    color: #ffffff !important;
+}
+
+/* Container for the filter input to ensure no weird white backgrounds */
+body[class*="sflow-theme-"] .d1dlne,
+body[class*="sflow-theme-"] .L6J0Pc {
+    background-color: transparent !important;
+}
+
+/* Ensure the disabled/hidden input behind doesn't interfere */
+body[class*="sflow-theme-"] .yNVtPc {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+/* Google autocomplete dropdown container */
+body[class*="sflow-theme-"] [role="listbox"][aria-label*="filter"],
+body[class*="sflow-theme-"] .aXBtI,
+body[class*="sflow-theme-"] .VfPpkd-xl07Ob-XxIAqe,
+body[class*="sflow-theme-"] ul[jsname="wIVhvb"],
+body[class*="sflow-theme-"] .VfPpkd-suEOdc {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 4px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Autocomplete dropdown items */
+body[class*="sflow-theme-"] [role="listbox"] [role="option"],
+body[class*="sflow-theme-"] .VfPpkd-OkbHre,
+body[class*="sflow-theme-"] .u3WVdc li,
+body[class*="sflow-theme-"] .VfPpkd-StrnGf-rymPhb-IhFlZd {
+    color: var(--fg-primary) !important;
+    background-color: transparent !important;
+}
+
+body[class*="sflow-theme-"] [role="listbox"] [role="option"]:hover,
+body[class*="sflow-theme-"] .VfPpkd-OkbHre:hover {
+    background-color: var(--hover-overlay) !important;
+}
+
+body[class*="sflow-theme-"] [role="listbox"] [role="option"][aria-selected="true"],
+body[class*="sflow-theme-"] .VfPpkd-OkbHre[aria-selected="true"] {
+    background-color: var(--bg-selection) !important;
+    color: var(--accent-color) !important;
+}
+
+/* Autocomplete item text */
+body[class*="sflow-theme-"] .VfPpkd-StrnGf-rymPhb-b9t22c,
+body[class*="sflow-theme-"] [role="option"] span {
+    color: var(--fg-primary) !important;
+}
 
 /* =========================================
    SYNTAX HIGHLIGHTING - GAS MONACO SPECIFIC

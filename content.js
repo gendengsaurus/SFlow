@@ -112,21 +112,85 @@ async function init() {
     // but the observer is safe enough.
     waitForToolbarAndInject();
 
-    // Start Dashboard Fixer Loop with cleanup tracking
+    // Start Dashboard Fixer Loop with cleanup tracking (backup, less frequent)
     if (dashboardFixerInterval) {
         clearInterval(dashboardFixerInterval);
     }
     dashboardFixerInterval = setInterval(fixDashboardTheme, 2000);
+
+    // Start instant MutationObserver for faster response
+    startThemeObserver();
 }
 
 // Cache for processed nodes to avoid redundant processing
-const processedNodes = new WeakSet();
+let processedNodes = new WeakSet();
+let lastKnownUrl = window.location.href;
+let lastKnownHash = window.location.hash;
+let themeObserver = null;
+let themeFixTimeout = null;
+
+// Debounced theme fixer - runs after DOM settles
+function debouncedThemeFix() {
+    if (themeFixTimeout) clearTimeout(themeFixTimeout);
+    themeFixTimeout = setTimeout(() => {
+        processedNodes = new WeakSet(); // Clear cache for fresh scan
+        fixDashboardTheme();
+    }, 50); // 50ms debounce - very fast but prevents flooding
+}
+
+// MutationObserver for instant DOM change detection
+function startThemeObserver() {
+    if (themeObserver) return; // Already running
+
+    themeObserver = new MutationObserver((mutations) => {
+        // Check if URL/hash changed
+        if (window.location.href !== lastKnownUrl || window.location.hash !== lastKnownHash) {
+            lastKnownUrl = window.location.href;
+            lastKnownHash = window.location.hash;
+            debouncedThemeFix();
+            return;
+        }
+
+        // Check if significant nodes were added
+        let hasSignificantChange = false;
+        for (const mutation of mutations) {
+            if (mutation.addedNodes.length > 0) {
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        // Check if it's a main content area change
+                        if (node.matches && (
+                            node.matches('[role="main"]') ||
+                            node.matches('.layout-content') ||
+                            node.matches('[class*="content"]') ||
+                            node.classList?.contains('g3VIld') || // Dashboard cards
+                            node.querySelectorAll?.('*').length > 5 // Has multiple children
+                        )) {
+                            hasSignificantChange = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (hasSignificantChange) break;
+        }
+
+        if (hasSignificantChange) {
+            debouncedThemeFix();
+        }
+    });
+
+    themeObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
 
 // === JS-BASED THEME ENFORCER (DEEP SCAN) ===
 function fixDashboardTheme() {
     // Only run if we are in a themed mode
     const isThemed = document.body.className.includes('sflow-theme-');
     if (!isThemed || document.body.className.includes('sflow-theme-default')) return;
+
 
     // Helper to traverse DOM including Shadow Roots
     function traverse(node, callback) {
@@ -184,14 +248,30 @@ function fixDashboardTheme() {
             '.E8iptc'
         ];
 
-        if (node.matches && node.matches(secondaryclasses.join(', '))) {
+        // Check if element is inside a dropdown/listbox (should NOT get accent color)
+        const isInsideDropdown = node.closest && (
+            node.closest('[role="listbox"]') ||
+            node.closest('[role="menu"]') ||
+            node.closest('.aXBtI') ||
+            node.closest('.u3WVdc') ||
+            node.closest('.VfPpkd-xl07Ob-XxIAqe')
+        );
+
+        if (node.matches && node.matches(secondaryclasses.join(', ')) && !isInsideDropdown) {
             node.style.setProperty('color', 'var(--accent-color)', 'important');
             const children = node.querySelectorAll && node.querySelectorAll('*');
             if (children) {
                 children.forEach(child => {
-                    child.style.setProperty('color', 'var(--accent-color)', 'important');
-                    if (child.tagName === 'text' || child.tagName === 'tspan') {
-                        child.style.setProperty('fill', 'var(--accent-color)', 'important');
+                    // Skip children inside dropdowns
+                    const childInDropdown = child.closest && (
+                        child.closest('[role="listbox"]') ||
+                        child.closest('[role="menu"]')
+                    );
+                    if (!childInDropdown) {
+                        child.style.setProperty('color', 'var(--accent-color)', 'important');
+                        if (child.tagName === 'text' || child.tagName === 'tspan') {
+                            child.style.setProperty('fill', 'var(--accent-color)', 'important');
+                        }
                     }
                 });
             }
@@ -234,15 +314,19 @@ function fixDashboardTheme() {
         if (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA') {
             const type = node.getAttribute('type');
             if (!type || type === 'text' || type === 'password' || type === 'number' || type === 'email' || node.tagName === 'TEXTAREA') {
-                node.style.setProperty('background-color', 'transparent', 'important');
-                node.style.setProperty('color', 'var(--fg-primary)', 'important');
-                node.style.setProperty('border', '1px solid var(--border-color)', 'important');
-
-                // Specific User Request: Filter Input (.Ax4B8) -> Thematic Text
-                // Using aria-label for robustness: "Add a trigger filter"
                 const ariaLabel = node.getAttribute('aria-label');
-                if ((node.matches && node.matches('.Ax4B8')) || (ariaLabel && ariaLabel.includes('filter'))) {
-                    node.style.setProperty('color', 'var(--accent-color)', 'important');
+                const isFilterInput = (node.matches && node.matches('.Ax4B8')) || (ariaLabel && ariaLabel.includes('filter'));
+
+                // Filter input gets special styling - only colors, preserve size
+                if (isFilterInput) {
+                    node.style.setProperty('background-color', 'var(--bg-secondary)', 'important');
+                    node.style.setProperty('color', 'var(--fg-primary)', 'important');
+                    node.style.setProperty('border', '1px solid var(--border-color)', 'important');
+                } else {
+                    // Other inputs - transparent background
+                    node.style.setProperty('background-color', 'transparent', 'important');
+                    node.style.setProperty('color', 'var(--fg-primary)', 'important');
+                    node.style.setProperty('border', '1px solid var(--border-color)', 'important');
                 }
             }
             // Radio & Checkboxes -> Accent
@@ -251,13 +335,12 @@ function fixDashboardTheme() {
             }
         }
 
-        // Filter "Add a filter" Label (.PK2PH) -> Thematic
+        // Filter "Add a filter" Label (.PK2PH) -> White
         if (node.matches && node.matches('.PK2PH')) {
-            node.style.setProperty('color', 'var(--accent-color)', 'important');
+            node.style.setProperty('color', '#ffffff', 'important');
             // The icon is usually a child span .DPvwYc or similar
             const icons = node.querySelectorAll('.DPvwYc, .Ce1Y1c, span[aria-hidden="true"]');
             icons.forEach(icon => {
-                // Filter out text nodes if possible, but safe to color spans white if they assume icon role
                 icon.style.setProperty('color', '#ffffff', 'important');
             });
         }
@@ -267,25 +350,30 @@ function fixDashboardTheme() {
             node.style.setProperty('color', '#ffffff', 'important');
         }
 
-        // Dropdown Items (Filter Lists etc) -> Thematic Text Normal, Accent BG on Hover ONLY
+        // Dropdown Items (Filter Lists etc) -> White Text, Accent BG on Hover ONLY
         // Target generic options
         if (node.matches && (
             node.matches('.MocG8c') ||
             node.matches('.OA0qHb') ||
+            node.matches('.MkjOTb') ||
             node.getAttribute('role') === 'option' ||
             node.matches('.dEOOab')
         )) {
-            // Default State (Neutral) - No Highlight even if selected
-            node.style.setProperty('color', 'var(--accent-color)', 'important');
+            // Default State - White text on transparent background
+            node.style.setProperty('color', 'var(--fg-primary)', 'important');
             node.style.setProperty('background-color', 'transparent', 'important');
             node.style.setProperty('cursor', 'pointer', 'important');
+
+            // Also set children to white
+            const innerDivs = node.querySelectorAll('div');
+            innerDivs.forEach(d => d.style.setProperty('color', 'var(--fg-primary)', 'important'));
 
             // Hover Effects via JS Listeners
             if (!node.dataset.hasOptionHover) {
                 node.dataset.hasOptionHover = 'true';
 
                 node.addEventListener('mouseenter', () => {
-                    // Thematic Highlight on Hover
+                    // Accent background + White text on Hover
                     node.style.setProperty('background-color', 'var(--accent-color)', 'important');
                     node.style.setProperty('color', '#ffffff', 'important');
                     const children = node.querySelectorAll('*');
@@ -293,11 +381,11 @@ function fixDashboardTheme() {
                 });
 
                 node.addEventListener('mouseleave', () => {
-                    // Always revert to Neutral (Transparent)
+                    // Revert to White text on transparent
                     node.style.setProperty('background-color', 'transparent', 'important');
-                    node.style.setProperty('color', 'var(--accent-color)', 'important');
+                    node.style.setProperty('color', 'var(--fg-primary)', 'important');
                     const children = node.querySelectorAll('*');
-                    children.forEach(c => c.style.setProperty('color', 'var(--accent-color)', 'important'));
+                    children.forEach(c => c.style.setProperty('color', 'var(--fg-primary)', 'important'));
                 });
             }
         }
@@ -340,10 +428,16 @@ function fixDashboardTheme() {
         // Generic Listbox Container (Popup/Menu) -> Dark BG
         // Check if it's NOT the trigger above (using class exclusion or aria-expanded logic)
         // User dump showed trigger has role="listbox" too, so we need careful ordering or exclusion.
+        // EXCLUDE file list container (Fcw6db, GFlqGb, StrnGf-VfPpkd-rymPhb)
         if (node.matches && (
             node.matches('.u3WVdc') ||
             node.matches('.jBmls') ||
-            (node.getAttribute('role') === 'listbox' && !node.classList.contains('jgvuAb') && !node.classList.contains('VsRsme'))
+            (node.getAttribute('role') === 'listbox' &&
+                !node.classList.contains('jgvuAb') &&
+                !node.classList.contains('VsRsme') &&
+                !node.classList.contains('Fcw6db') &&
+                !node.classList.contains('GFlqGb') &&
+                !node.classList.contains('StrnGf-VfPpkd-rymPhb'))
         )) {
             node.style.setProperty('background-color', '#2d2d2d', 'important'); // Dark grey background
             node.style.setProperty('box-shadow', '0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12)', 'important');
@@ -987,6 +1081,14 @@ function applyTheme(themeName) {
 
     if (themeName !== 'default') {
         document.body.classList.add(`sflow-theme-${themeName}`);
+        // Ensure theme observer is running
+        startThemeObserver();
+        // Re-apply theme immediately
+        processedNodes = new WeakSet();
+        fixDashboardTheme();
+    } else {
+        // Clean up all inline styles when switching to default
+        cleanupThemeStyles();
     }
 
     // Apply specific settings styles
@@ -999,6 +1101,42 @@ function applyTheme(themeName) {
         bgPrimary: theme.bgPrimary,
         border: theme.border
     });
+}
+
+// Function to clean up all inline styles applied by theme JavaScript
+function cleanupThemeStyles() {
+    // Remove all inline styles that were applied by fixDashboardTheme
+    const styledElements = document.querySelectorAll('[style]');
+    styledElements.forEach(el => {
+        // Only clean elements that have theme-related inline styles
+        const style = el.getAttribute('style') || '';
+        if (style.includes('var(--') ||
+            style.includes('--accent-color') ||
+            style.includes('--fg-primary') ||
+            style.includes('--bg-') ||
+            style.includes('#2d2d2d') ||
+            style.includes('#ffffff') ||
+            style.includes('#3c4043')) {
+            // Remove specific style properties instead of all styles
+            el.style.removeProperty('color');
+            el.style.removeProperty('background-color');
+            el.style.removeProperty('background');
+            el.style.removeProperty('border-color');
+            el.style.removeProperty('border');
+            el.style.removeProperty('fill');
+            el.style.removeProperty('opacity');
+            el.style.removeProperty('box-shadow');
+        }
+    });
+
+    // Clear the processed nodes cache
+    processedNodes = new WeakSet();
+
+    // Stop theme observer when on default theme
+    if (themeObserver) {
+        themeObserver.disconnect();
+        themeObserver = null;
+    }
 }
 
 

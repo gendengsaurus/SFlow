@@ -192,272 +192,150 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             chrome.storage.local.set({ fontSize: parseInt(size) });
-        });
-    }
-
-    // Auto Theme (PRO)
-    const autoThemeToggle = document.getElementById('auto-theme-toggle');
-    const autoThemeConfig = document.getElementById('auto-theme-config');
-    const dayThemeSelect = document.getElementById('day-theme');
-    const nightThemeSelect = document.getElementById('night-theme');
-
-    if (autoThemeToggle) {
-        // Load saved auto theme settings
-        chrome.storage.local.get(['autoTheme', 'dayTheme', 'nightTheme'], (result) => {
-            autoThemeToggle.checked = result.autoTheme || false;
-            if (autoThemeConfig) {
-                autoThemeConfig.style.display = result.autoTheme ? 'block' : 'none';
-            }
-            if (dayThemeSelect) dayThemeSelect.value = result.dayTheme || 'default';
-            if (nightThemeSelect) nightThemeSelect.value = result.nightTheme || 'dracula';
-        });
-
-        autoThemeToggle.addEventListener('change', () => {
-            if (!isPro) {
-                autoThemeToggle.checked = false;
-                licensePanel.classList.add('visible');
-                licenseMessage.textContent = 'Auto Theme is a Pro feature';
-                licenseMessage.className = 'license-message error';
-                return;
-            }
-
-            const enabled = autoThemeToggle.checked;
-            if (autoThemeConfig) {
-                autoThemeConfig.style.display = enabled ? 'block' : 'none';
-            }
-
-            chrome.storage.local.set({ autoTheme: enabled });
-
-            if (enabled) {
-                applyAutoTheme();
-            }
-        });
-    }
-
-    if (dayThemeSelect) {
-        dayThemeSelect.addEventListener('change', () => {
-            chrome.storage.local.set({ dayTheme: dayThemeSelect.value });
-            if (autoThemeToggle?.checked) applyAutoTheme();
-        });
-    }
-
-    if (nightThemeSelect) {
-        nightThemeSelect.addEventListener('change', () => {
-            chrome.storage.local.set({ nightTheme: nightThemeSelect.value });
-            if (autoThemeToggle?.checked) applyAutoTheme();
-        });
-    }
-
-    function applyAutoTheme() {
-        const hour = new Date().getHours();
-        const isDay = hour >= 6 && hour < 18;
-        const theme = isDay ? (dayThemeSelect?.value || 'default') : (nightThemeSelect?.value || 'dracula');
-        saveTheme(theme);
-        updateThemeButtons(theme);
-    }
-
-    // Focus Mode (PRO)
-    const focusModeToggle = document.getElementById('focus-mode-toggle');
-
-    if (focusModeToggle) {
-        chrome.storage.local.get(['focusMode'], (result) => {
-            focusModeToggle.checked = result.focusMode || false;
-        });
-
-        focusModeToggle.addEventListener('change', () => {
-            if (!isPro) {
-                focusModeToggle.checked = false;
-                licensePanel.classList.add('visible');
-                licenseMessage.textContent = 'Focus Mode is a Pro feature';
-                licenseMessage.className = 'license-message error';
-                return;
-            }
-            chrome.storage.local.set({ focusMode: focusModeToggle.checked });
-        });
-    }
-
-    // Code Stats (PRO)
-    const codeStatsToggle = document.getElementById('code-stats-toggle');
-
-    if (codeStatsToggle) {
-        chrome.storage.local.get(['codeStats'], (result) => {
-            codeStatsToggle.checked = result.codeStats || false;
-        });
-
-        codeStatsToggle.addEventListener('change', () => {
-            if (!isPro) {
-                codeStatsToggle.checked = false;
-                licensePanel.classList.add('visible');
-                licenseMessage.textContent = 'Code Stats is a Pro feature';
-                licenseMessage.className = 'license-message error';
-                return;
-            }
-            chrome.storage.local.set({ codeStats: codeStatsToggle.checked });
-        });
-    }
-
-    // Scroll Progress (PRO)
-    const scrollProgressToggle = document.getElementById('scroll-progress-toggle');
-
-    if (scrollProgressToggle) {
-        chrome.storage.local.get(['scrollProgress'], (result) => {
-            scrollProgressToggle.checked = result.scrollProgress || false;
-        });
-
-        scrollProgressToggle.addEventListener('change', () => {
-            if (!isPro) {
-                scrollProgressToggle.checked = false;
-                licensePanel.classList.add('visible');
-                licenseMessage.textContent = 'Scroll Progress is a Pro feature';
-                licenseMessage.className = 'license-message error';
-                return;
-            }
-            chrome.storage.local.set({ scrollProgress: scrollProgressToggle.checked });
-        });
-    }
+        }
 
     // Pro Banner click
     proBanner.addEventListener('click', () => {
-        if (!isPro) {
-            licensePanel.classList.toggle('visible');
-            licenseMessage.textContent = '';
-        }
-    });
-
-    // Cancel license input
-    if (cancelLicenseBtn) {
-        cancelLicenseBtn.addEventListener('click', () => {
-            licensePanel.classList.remove('visible');
-            licenseInput.value = '';
-            licenseMessage.textContent = '';
-        });
-    }
-
-    // License input formatting
-    licenseInput.addEventListener('input', (e) => {
-        let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
-        if (value.length > 5 && value[5] !== '-') value = value.slice(0, 5) + '-' + value.slice(5);
-        if (value.length > 10 && value[10] !== '-') value = value.slice(0, 10) + '-' + value.slice(10);
-        if (value.length > 15 && value[15] !== '-') value = value.slice(0, 15) + '-' + value.slice(15);
-        e.target.value = value;
-        licenseMessage.textContent = '';
-    });
-
-    // Activate license
-    activateBtn.addEventListener('click', () => {
-        const key = licenseInput.value.trim();
-
-        if (!key) {
-            licenseMessage.textContent = 'Enter a license key';
-            licenseMessage.className = 'license-message error';
-            return;
-        }
-
-        if (!isValidFormat(key)) {
-            licenseMessage.textContent = 'Invalid format';
-            licenseMessage.className = 'license-message error';
-            return;
-        }
-
-        if (!validateChecksum(key)) {
-            licenseMessage.textContent = 'Invalid license key';
-            licenseMessage.className = 'license-message error';
-            return;
-        }
-
-        // Success!
-        chrome.storage.sync.set({
-            licenseKey: key.toUpperCase().trim(),
-            isPro: true,
-            licenseValidatedAt: Date.now()
-        }, () => {
-            isPro = true;
-            licenseMessage.textContent = 'Pro activated!';
-            licenseMessage.className = 'license-message success';
-            updateProUI();
-            licenseInput.value = '';
-
-            setTimeout(() => {
-                licensePanel.classList.remove('visible');
-            }, 1500);
-        });
-    });
-
-    // Export/Import Settings (PRO)
-    const exportBtn = document.getElementById('export-btn');
-    const importBtn = document.getElementById('import-btn');
-    const importFile = document.getElementById('import-file');
-
-    if (exportBtn) {
-        exportBtn.addEventListener('click', () => {
             if (!isPro) {
-                licensePanel.classList.add('visible');
-                licenseMessage.textContent = 'Settings Export is a Pro feature';
+                licensePanel.classList.toggle('visible');
+                licenseMessage.textContent = '';
+            }
+        });
+
+        // Cancel license input
+        if (cancelLicenseBtn) {
+            cancelLicenseBtn.addEventListener('click', () => {
+                licensePanel.classList.remove('visible');
+                licenseInput.value = '';
+                licenseMessage.textContent = '';
+            });
+        }
+
+        // License input formatting
+        licenseInput.addEventListener('input', (e) => {
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+            if (value.length > 5 && value[5] !== '-') value = value.slice(0, 5) + '-' + value.slice(5);
+            if (value.length > 10 && value[10] !== '-') value = value.slice(0, 10) + '-' + value.slice(10);
+            if (value.length > 15 && value[15] !== '-') value = value.slice(0, 15) + '-' + value.slice(15);
+            e.target.value = value;
+            licenseMessage.textContent = '';
+        });
+
+        // Activate license
+        activateBtn.addEventListener('click', () => {
+            const key = licenseInput.value.trim();
+
+            if (!key) {
+                licenseMessage.textContent = 'Enter a license key';
                 licenseMessage.className = 'license-message error';
                 return;
             }
 
-            // Export all settings
-            chrome.storage.local.get(null, (localData) => {
-                chrome.storage.sync.get(['licenseKey', 'isPro'], (syncData) => {
-                    const exportData = {
-                        version: '1.5.0',
-                        exportDate: new Date().toISOString(),
-                        local: localData,
-                        license: {
-                            isPro: syncData.isPro,
-                            // Don't export the actual key for security
-                        }
-                    };
+            if (!isValidFormat(key)) {
+                licenseMessage.textContent = 'Invalid format';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
 
-                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `scriptflow-settings-${Date.now()}.json`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                });
+            if (!validateChecksum(key)) {
+                licenseMessage.textContent = 'Invalid license key';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+
+            // Success!
+            chrome.storage.sync.set({
+                licenseKey: key.toUpperCase().trim(),
+                isPro: true,
+                licenseValidatedAt: Date.now()
+            }, () => {
+                isPro = true;
+                licenseMessage.textContent = 'Pro activated!';
+                licenseMessage.className = 'license-message success';
+                updateProUI();
+                licenseInput.value = '';
+
+                setTimeout(() => {
+                    licensePanel.classList.remove('visible');
+                }, 1500);
             });
         });
-    }
 
-    if (importBtn && importFile) {
-        importBtn.addEventListener('click', () => {
-            if (!isPro) {
-                licensePanel.classList.add('visible');
-                licenseMessage.textContent = 'Settings Import is a Pro feature';
-                licenseMessage.className = 'license-message error';
-                return;
-            }
-            importFile.click();
-        });
+        // Export/Import Settings (PRO)
+        const exportBtn = document.getElementById('export-btn');
+        const importBtn = document.getElementById('import-btn');
+        const importFile = document.getElementById('import-file');
 
-        importFile.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const data = JSON.parse(event.target.result);
-
-                    if (!data.local) {
-                        alert('Invalid settings file');
-                        return;
-                    }
-
-                    chrome.storage.local.set(data.local, () => {
-                        alert('Settings imported! Reload extension to apply.');
-                        // Reload popup to show new settings
-                        location.reload();
-                    });
-                } catch (err) {
-                    alert('Failed to parse settings file');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                if (!isPro) {
+                    licensePanel.classList.add('visible');
+                    licenseMessage.textContent = 'Settings Export is a Pro feature';
+                    licenseMessage.className = 'license-message error';
+                    return;
                 }
-            };
-            reader.readAsText(file);
-            importFile.value = ''; // Reset for next import
-        });
-    }
-});
+
+                // Export all settings
+                chrome.storage.local.get(null, (localData) => {
+                    chrome.storage.sync.get(['licenseKey', 'isPro'], (syncData) => {
+                        const exportData = {
+                            version: '1.5.0',
+                            exportDate: new Date().toISOString(),
+                            local: localData,
+                            license: {
+                                isPro: syncData.isPro,
+                                // Don't export the actual key for security
+                            }
+                        };
+
+                        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `scriptflow-settings-${Date.now()}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    });
+                });
+            });
+        }
+
+        if (importBtn && importFile) {
+            importBtn.addEventListener('click', () => {
+                if (!isPro) {
+                    licensePanel.classList.add('visible');
+                    licenseMessage.textContent = 'Settings Import is a Pro feature';
+                    licenseMessage.className = 'license-message error';
+                    return;
+                }
+                importFile.click();
+            });
+
+            importFile.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+
+                        if (!data.local) {
+                            alert('Invalid settings file');
+                            return;
+                        }
+
+                        chrome.storage.local.set(data.local, () => {
+                            alert('Settings imported! Reload extension to apply.');
+                            // Reload popup to show new settings
+                            location.reload();
+                        });
+                    } catch (err) {
+                        alert('Failed to parse settings file');
+                    }
+                };
+                reader.readAsText(file);
+                importFile.value = ''; // Reset for next import
+            });
+        }
+    });

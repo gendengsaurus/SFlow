@@ -104,10 +104,21 @@ const PRO_FONTS = ['firacode', 'jetbrains', 'cascadia', 'source'];
  * Check if user has Pro access
  */
 async function checkProAccess() {
-    if (window.LicenseManager) {
-        return await window.LicenseManager.isPro();
+    // First try LicenseManager if available
+    if (window.LicenseManager && typeof window.LicenseManager.isPro === 'function') {
+        try {
+            return await window.LicenseManager.isPro();
+        } catch (e) {
+            // Fall through to storage check
+        }
     }
-    return false;
+
+    // Fallback: read directly from storage
+    return new Promise((resolve) => {
+        chrome.storage.sync.get(['isPro'], (result) => {
+            resolve(result.isPro === true);
+        });
+    });
 }
 
 /**
@@ -1076,10 +1087,14 @@ function injectToolbarInline(container, referenceNode) {
 
         <div class="sflow-control-group">
             <select id="sflow-theme-select" class="sflow-tooltip" data-tooltip="Select Theme">
-                <option value="default">Default</option>
+                <option value="default">Light</option>
                 <option value="dracula">Dracula</option>
-                <option value="monokai">Monokai</option>
-                <option value="nord">Nord</option>
+                <option value="monokai">Monokai ⭐</option>
+                <option value="nord">Nord ⭐</option>
+                <option value="solarized">Solarized ⭐</option>
+                <option value="onedark">One Dark ⭐</option>
+                <option value="github">GitHub ⭐</option>
+                <option value="catppuccin">Catppuccin ⭐</option>
             </select>
         </div>
 

@@ -1927,6 +1927,65 @@ chrome.storage.local.get(['indentGuides'], async (result) => {
     }
 });
 
+// === LINE HIGHLIGHT (PRO) ===
+let lineHighlightEnabled = false;
+
+async function toggleLineHighlight(enable) {
+    const isPro = await checkProAccess();
+    if (!isPro) return;
+
+    lineHighlightEnabled = enable;
+
+    let styleEl = document.getElementById('sflow-line-highlight');
+
+    if (enable) {
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'sflow-line-highlight';
+            document.head.appendChild(styleEl);
+        }
+
+        styleEl.textContent = `
+            /* Enhanced Current Line Highlight */
+            .monaco-editor .view-overlays .current-line {
+                background: linear-gradient(90deg, 
+                    var(--accent-color, #bd93f9)15 0%, 
+                    transparent 100%) !important;
+                border-left: 2px solid var(--accent-color, #bd93f9) !important;
+            }
+            
+            .monaco-editor .margin-view-overlays .current-line-margin {
+                background: linear-gradient(90deg, 
+                    var(--accent-color, #bd93f9)10 0%, 
+                    transparent 100%) !important;
+            }
+            
+            .monaco-editor .line-numbers.active-line-number {
+                color: var(--accent-color, #bd93f9) !important;
+                font-weight: bold !important;
+            }
+        `;
+    } else {
+        if (styleEl) {
+            styleEl.remove();
+        }
+    }
+}
+
+// Listen for line highlight changes
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === 'local' && changes.lineHighlight !== undefined) {
+        toggleLineHighlight(changes.lineHighlight.newValue);
+    }
+});
+
+// Load line highlight on init
+chrome.storage.local.get(['lineHighlight'], async (result) => {
+    if (result.lineHighlight) {
+        toggleLineHighlight(true);
+    }
+});
+
 // ===========================================
 // PHASE 2 FEATURES
 // ===========================================

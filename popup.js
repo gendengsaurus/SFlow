@@ -277,6 +277,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Line Highlight (PRO)
+    const lineHighlightToggle = document.getElementById('line-highlight-toggle');
+
+    if (lineHighlightToggle) {
+        chrome.storage.local.get(['lineHighlight'], (result) => {
+            lineHighlightToggle.checked = result.lineHighlight || false;
+        });
+
+        lineHighlightToggle.addEventListener('change', () => {
+            if (!isPro) {
+                lineHighlightToggle.checked = false;
+                licensePanel.classList.add('visible');
+                licenseMessage.textContent = 'Line Highlight is a Pro feature';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+            chrome.storage.local.set({ lineHighlight: lineHighlightToggle.checked });
+        });
+    }
+
     // Pro Banner click
     proBanner.addEventListener('click', () => {
         if (!isPro) {

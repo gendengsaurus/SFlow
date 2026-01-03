@@ -6,6 +6,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const rainbowToggle = document.getElementById('rainbow-toggle');
     const todoToggle = document.getElementById('todo-toggle');
 
+    // Tab navigation
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.dataset.tab;
+
+            // Update button states
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Update content visibility
+            tabContents.forEach(content => {
+                content.classList.toggle('active', content.id === `tab-${tabId}`);
+            });
+        });
+    });
+
     // Pro UI elements
     const proBanner = document.getElementById('pro-banner');
     const proBannerText = document.getElementById('pro-banner-text');

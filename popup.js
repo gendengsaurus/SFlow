@@ -195,6 +195,67 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Auto Theme (PRO)
+    const autoThemeToggle = document.getElementById('auto-theme-toggle');
+    const autoThemeConfig = document.getElementById('auto-theme-config');
+    const dayThemeSelect = document.getElementById('day-theme');
+    const nightThemeSelect = document.getElementById('night-theme');
+
+    if (autoThemeToggle) {
+        // Load saved auto theme settings
+        chrome.storage.local.get(['autoTheme', 'dayTheme', 'nightTheme'], (result) => {
+            autoThemeToggle.checked = result.autoTheme || false;
+            if (autoThemeConfig) {
+                autoThemeConfig.style.display = result.autoTheme ? 'block' : 'none';
+            }
+            if (dayThemeSelect) dayThemeSelect.value = result.dayTheme || 'default';
+            if (nightThemeSelect) nightThemeSelect.value = result.nightTheme || 'dracula';
+        });
+
+        autoThemeToggle.addEventListener('change', () => {
+            if (!isPro) {
+                autoThemeToggle.checked = false;
+                licensePanel.classList.add('visible');
+                licenseMessage.textContent = 'Auto Theme is a Pro feature';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+
+            const enabled = autoThemeToggle.checked;
+            if (autoThemeConfig) {
+                autoThemeConfig.style.display = enabled ? 'block' : 'none';
+            }
+
+            chrome.storage.local.set({ autoTheme: enabled });
+
+            if (enabled) {
+                applyAutoTheme();
+            }
+        });
+    }
+
+    if (dayThemeSelect) {
+        dayThemeSelect.addEventListener('change', () => {
+            chrome.storage.local.set({ dayTheme: dayThemeSelect.value });
+            if (autoThemeToggle?.checked) applyAutoTheme();
+        });
+    }
+
+    if (nightThemeSelect) {
+        nightThemeSelect.addEventListener('change', () => {
+            chrome.storage.local.set({ nightTheme: nightThemeSelect.value });
+            if (autoThemeToggle?.checked) applyAutoTheme();
+        });
+    }
+
+    function applyAutoTheme() {
+        const hour = new Date().getHours();
+        const isDay = hour >= 6 && hour < 18;
+        const theme = isDay ? (dayThemeSelect?.value || 'default') : (nightThemeSelect?.value || 'dracula');
+        saveTheme(theme);
+        updateThemeButtons(theme);
+    }
+
     // Pro Banner click
     proBanner.addEventListener('click', () => {
         if (!isPro) {

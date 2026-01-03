@@ -840,21 +840,38 @@ function fixDashboardTheme() {
 
 function loadTheme() {
     try {
-        chrome.storage.local.get(['theme'], (result) => {
+        chrome.storage.local.get(['theme', 'autoTheme', 'dayTheme', 'nightTheme'], async (result) => {
             if (chrome.runtime.lastError) {
                 console.warn('ScriptFlow: Storage error, using default theme');
-                applyTheme('dracula'); // Default fallback
+                applyTheme('dracula');
                 return;
             }
+
+            // Check if Auto Theme is enabled (Pro feature)
+            if (result.autoTheme) {
+                const isPro = await checkProAccess();
+                if (isPro) {
+                    const hour = new Date().getHours();
+                    const isDay = hour >= 6 && hour < 18;
+                    const theme = isDay ? (result.dayTheme || 'default') : (result.nightTheme || 'dracula');
+                    applyTheme(theme);
+                    const select = document.getElementById('sflow-theme-select');
+                    const toggle = document.getElementById('sflow-theme-toggle');
+                    if (select) select.value = theme;
+                    if (toggle) updateToggleIcon(toggle, theme);
+                    return;
+                }
+            }
+
+            // Regular theme loading
             if (result.theme) {
                 applyTheme(result.theme);
-                // Also update the select if it exists (main frame)
                 const select = document.getElementById('sflow-theme-select');
                 const toggle = document.getElementById('sflow-theme-toggle');
                 if (select) select.value = result.theme;
                 if (toggle) updateToggleIcon(toggle, result.theme);
             } else {
-                applyTheme('dracula'); // Default for new users
+                applyTheme('dracula');
             }
         });
     } catch (e) {

@@ -297,6 +297,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Scroll Progress (PRO)
+    const scrollProgressToggle = document.getElementById('scroll-progress-toggle');
+
+    if (scrollProgressToggle) {
+        chrome.storage.local.get(['scrollProgress'], (result) => {
+            scrollProgressToggle.checked = result.scrollProgress || false;
+        });
+
+        scrollProgressToggle.addEventListener('change', () => {
+            if (!isPro) {
+                scrollProgressToggle.checked = false;
+                licensePanel.classList.add('visible');
+                licenseMessage.textContent = 'Scroll Progress is a Pro feature';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+            chrome.storage.local.set({ scrollProgress: scrollProgressToggle.checked });
+        });
+    }
+
     // Pro Banner click
     proBanner.addEventListener('click', () => {
         if (!isPro) {

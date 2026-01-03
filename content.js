@@ -1986,6 +1986,81 @@ chrome.storage.local.get(['lineHighlight'], async (result) => {
     }
 });
 
+// === SCROLL PROGRESS (PRO) ===
+let scrollProgressEnabled = false;
+let scrollProgressBar = null;
+
+async function toggleScrollProgress(enable) {
+    const isPro = await checkProAccess();
+    if (!isPro) return;
+
+    scrollProgressEnabled = enable;
+
+    if (enable) {
+        if (!scrollProgressBar) {
+            scrollProgressBar = document.createElement('div');
+            scrollProgressBar.id = 'sflow-scroll-progress';
+            scrollProgressBar.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 3px;
+                background: linear-gradient(90deg, var(--accent-color, #bd93f9), var(--color-success, #50fa7b));
+                z-index: 99999;
+                transition: width 0.1s ease-out;
+                box-shadow: 0 0 10px var(--accent-color, #bd93f9);
+            `;
+            document.body.appendChild(scrollProgressBar);
+        }
+        updateScrollProgress();
+        window.addEventListener('scroll', updateScrollProgress, { passive: true });
+
+        // Also listen to Monaco editor scroll
+        const editorContainer = document.querySelector('.monaco-editor .overflow-guard');
+        if (editorContainer) {
+            editorContainer.addEventListener('scroll', updateEditorScrollProgress, { passive: true });
+        }
+    } else {
+        if (scrollProgressBar) {
+            scrollProgressBar.remove();
+            scrollProgressBar = null;
+        }
+        window.removeEventListener('scroll', updateScrollProgress);
+    }
+}
+
+function updateScrollProgress() {
+    if (!scrollProgressBar) return;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    scrollProgressBar.style.width = `${Math.min(100, progress)}%`;
+}
+
+function updateEditorScrollProgress() {
+    if (!scrollProgressBar) return;
+    const editor = document.querySelector('.monaco-editor .overflow-guard');
+    if (!editor) return;
+    const scrollTop = editor.scrollTop;
+    const scrollHeight = editor.scrollHeight - editor.clientHeight;
+    const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    scrollProgressBar.style.width = `${Math.min(100, progress)}%`;
+}
+
+// Listen for scroll progress changes
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === 'local' && changes.scrollProgress !== undefined) {
+        toggleScrollProgress(changes.scrollProgress.newValue);
+    }
+});
+
+// Load scroll progress on init
+chrome.storage.local.get(['scrollProgress'], async (result) => {
+    if (result.scrollProgress) {
+        toggleScrollProgress(true);
+    }
+});
+
 // ===========================================
 // PHASE 2 FEATURES
 // ===========================================

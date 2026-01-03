@@ -1908,24 +1908,13 @@ async function toggleIndentGuides(enable) {
         }
 
         styleEl.textContent = `
-            /* Monaco Editor Indent Guides */
-            .monaco-editor .lines-content .view-lines .view-line {
-                position: relative;
-            }
-            
-            .monaco-editor .view-overlays .current-line {
-                border-left: 1px solid var(--accent-color, #bd93f9) !important;
-            }
-            
-            /* Indent guide styling */
+            /* Indent guide styling - subtle visual enhancement */
             .monaco-editor .lines-content .core-guide-indent {
                 box-shadow: 1px 0 0 0 var(--border-color, #44475a) inset !important;
-                opacity: 0.5 !important;
             }
             
             .monaco-editor .lines-content .core-guide-indent.core-guide-indent-active {
                 box-shadow: 1px 0 0 0 var(--accent-color, #bd93f9) inset !important;
-                opacity: 1 !important;
             }
         `;
     } else {

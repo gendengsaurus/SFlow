@@ -242,4 +242,82 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 1500);
         });
     });
+
+    // Export/Import Settings (PRO)
+    const exportBtn = document.getElementById('export-btn');
+    const importBtn = document.getElementById('import-btn');
+    const importFile = document.getElementById('import-file');
+
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            if (!isPro) {
+                licensePanel.classList.add('visible');
+                licenseMessage.textContent = 'Settings Export is a Pro feature';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+
+            // Export all settings
+            chrome.storage.local.get(null, (localData) => {
+                chrome.storage.sync.get(['licenseKey', 'isPro'], (syncData) => {
+                    const exportData = {
+                        version: '1.5.0',
+                        exportDate: new Date().toISOString(),
+                        local: localData,
+                        license: {
+                            isPro: syncData.isPro,
+                            // Don't export the actual key for security
+                        }
+                    };
+
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `scriptflow-settings-${Date.now()}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            });
+        });
+    }
+
+    if (importBtn && importFile) {
+        importBtn.addEventListener('click', () => {
+            if (!isPro) {
+                licensePanel.classList.add('visible');
+                licenseMessage.textContent = 'Settings Import is a Pro feature';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+            importFile.click();
+        });
+
+        importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+
+                    if (!data.local) {
+                        alert('Invalid settings file');
+                        return;
+                    }
+
+                    chrome.storage.local.set(data.local, () => {
+                        alert('Settings imported! Reload extension to apply.');
+                        // Reload popup to show new settings
+                        location.reload();
+                    });
+                } catch (err) {
+                    alert('Failed to parse settings file');
+                }
+            };
+            reader.readAsText(file);
+            importFile.value = ''; // Reset for next import
+        });
+    }
 });

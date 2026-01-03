@@ -626,3 +626,44 @@ body {
     pointer-events: none;
     opacity: 0.5;
 }
+
+/* =========================================
+   Settings Export/Import
+   ========================================= */
+.settings-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.settings-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-hover);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.settings-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent);
+    color: var(--text-primary);
+}
+
+.settings-btn.pro-locked:not(.unlocked) {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.section-title .pro-tag {
+    position: static;
+    margin-left: 6px;
+}

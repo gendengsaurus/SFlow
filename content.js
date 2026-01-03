@@ -1868,6 +1868,63 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
             applyFontSize(newSize);
         }
     }
+    // Indent Guides toggle
+    if (namespace === 'local' && changes.indentGuides !== undefined) {
+        toggleIndentGuides(changes.indentGuides.newValue);
+    }
+});
+
+// === INDENT GUIDES (PRO) ===
+let indentGuidesEnabled = false;
+
+async function toggleIndentGuides(enable) {
+    const isPro = await checkProAccess();
+    if (!isPro) return;
+
+    indentGuidesEnabled = enable;
+
+    let styleEl = document.getElementById('sflow-indent-guides');
+
+    if (enable) {
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'sflow-indent-guides';
+            document.head.appendChild(styleEl);
+        }
+
+        styleEl.textContent = `
+            /* Monaco Editor Indent Guides */
+            .monaco-editor .lines-content .view-lines .view-line {
+                position: relative;
+            }
+            
+            .monaco-editor .view-overlays .current-line {
+                border-left: 1px solid var(--accent-color, #bd93f9) !important;
+            }
+            
+            /* Indent guide styling */
+            .monaco-editor .lines-content .core-guide-indent {
+                box-shadow: 1px 0 0 0 var(--border-color, #44475a) inset !important;
+                opacity: 0.5 !important;
+            }
+            
+            .monaco-editor .lines-content .core-guide-indent.core-guide-indent-active {
+                box-shadow: 1px 0 0 0 var(--accent-color, #bd93f9) inset !important;
+                opacity: 1 !important;
+            }
+        `;
+    } else {
+        if (styleEl) {
+            styleEl.remove();
+        }
+    }
+}
+
+// Load indent guides on init
+chrome.storage.local.get(['indentGuides'], async (result) => {
+    if (result.indentGuides) {
+        toggleIndentGuides(true);
+    }
 });
 
 // ===========================================

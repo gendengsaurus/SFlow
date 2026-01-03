@@ -256,6 +256,27 @@ document.addEventListener('DOMContentLoaded', () => {
         updateThemeButtons(theme);
     }
 
+    // Indent Guides (PRO)
+    const indentGuidesToggle = document.getElementById('indent-guides-toggle');
+
+    if (indentGuidesToggle) {
+        // Load saved state
+        chrome.storage.local.get(['indentGuides'], (result) => {
+            indentGuidesToggle.checked = result.indentGuides || false;
+        });
+
+        indentGuidesToggle.addEventListener('change', () => {
+            if (!isPro) {
+                indentGuidesToggle.checked = false;
+                licensePanel.classList.add('visible');
+                licenseMessage.textContent = 'Indent Guides is a Pro feature';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+            chrome.storage.local.set({ indentGuides: indentGuidesToggle.checked });
+        });
+    }
+
     // Pro Banner click
     proBanner.addEventListener('click', () => {
         if (!isPro) {

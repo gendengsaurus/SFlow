@@ -62,8 +62,170 @@ const SVGs = {
     command: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>`,
     // Phase 2 Icons
     rainbow: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h4a8 8 0 0 0 8-8 8 8 0 0 0-8-8H4"></path><path d="M4 6v12"></path></svg>`,
-    snippetAdd: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>`
+    snippetAdd: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>`,
+    // Pro badge icon
+    crown: `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm0 3h14v2H5v-2z"/></svg>`
 };
+
+// === PRO FEATURE GATING ===
+const PRO_THEMES = ['monokai', 'nord'];
+const PRO_FONTS = ['firacode', 'jetbrains', 'cascadia', 'source'];
+
+/**
+ * Check if user has Pro access
+ */
+async function checkProAccess() {
+    if (window.LicenseManager) {
+        return await window.LicenseManager.isPro();
+    }
+    return false;
+}
+
+/**
+ * Show upgrade prompt modal
+ */
+function showUpgradePrompt(feature) {
+    // Check if already showing
+    if (document.getElementById('sflow-upgrade-modal')) return;
+
+    const featureNames = {
+        'themes': 'Premium Themes (Monokai, Nord)',
+        'fonts': 'Custom Editor Fonts',
+        'rainbow_brackets': 'Rainbow Brackets',
+        'custom_snippets': 'Custom Snippets'
+    };
+
+    const featureName = featureNames[feature] || feature;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'sflow-upgrade-modal';
+    overlay.className = 'sflow-upgrade-overlay';
+    overlay.innerHTML = `
+        <div class="sflow-upgrade-container">
+            <div class="sflow-upgrade-header">
+                <span class="sflow-upgrade-crown">${SVGs.crown}</span>
+                <h2>Upgrade to Pro</h2>
+            </div>
+            <div class="sflow-upgrade-body">
+                <p><strong>${featureName}</strong> is a Pro feature.</p>
+                <ul class="sflow-upgrade-features">
+                    <li>✨ All Premium Themes (Monokai, Nord + more)</li>
+                    <li>🎨 Custom Editor Fonts</li>
+                    <li>🌈 Rainbow Brackets</li>
+                    <li>📝 Unlimited Custom Snippets</li>
+                    <li>🚀 Priority Support</li>
+                </ul>
+                <p class="sflow-upgrade-price">One-time payment: <strong>$4.99</strong></p>
+            </div>
+            <div class="sflow-upgrade-actions">
+                <button class="sflow-upgrade-btn sflow-upgrade-primary" id="sflow-upgrade-buy">
+                    Get Pro Now
+                </button>
+                <button class="sflow-upgrade-btn sflow-upgrade-secondary" id="sflow-upgrade-key">
+                    Enter License Key
+                </button>
+                <button class="sflow-upgrade-btn sflow-upgrade-cancel" id="sflow-upgrade-cancel">
+                    Maybe Later
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Event listeners
+    document.getElementById('sflow-upgrade-cancel').addEventListener('click', closeUpgradePrompt);
+    document.getElementById('sflow-upgrade-buy').addEventListener('click', () => {
+        window.open('https://scriptflow.lemonsqueezy.com/buy', '_blank');
+    });
+    document.getElementById('sflow-upgrade-key').addEventListener('click', showLicenseKeyInput);
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeUpgradePrompt();
+    });
+}
+
+function closeUpgradePrompt() {
+    const modal = document.getElementById('sflow-upgrade-modal');
+    if (modal) modal.remove();
+}
+
+function showLicenseKeyInput() {
+    const modal = document.getElementById('sflow-upgrade-modal');
+    if (!modal) return;
+
+    const container = modal.querySelector('.sflow-upgrade-container');
+    container.innerHTML = `
+        <div class="sflow-upgrade-header">
+            <span class="sflow-upgrade-crown">${SVGs.crown}</span>
+            <h2>Enter License Key</h2>
+        </div>
+        <div class="sflow-upgrade-body">
+            <input type="text" id="sflow-license-input" class="sflow-license-input" 
+                   placeholder="SFLOW-XXXX-XXXX-XXXX" maxlength="19">
+            <p id="sflow-license-error" class="sflow-license-error"></p>
+        </div>
+        <div class="sflow-upgrade-actions">
+            <button class="sflow-upgrade-btn sflow-upgrade-primary" id="sflow-activate-license">
+                Activate
+            </button>
+            <button class="sflow-upgrade-btn sflow-upgrade-cancel" id="sflow-upgrade-cancel">
+                Cancel
+            </button>
+        </div>
+    `;
+
+    document.getElementById('sflow-upgrade-cancel').addEventListener('click', closeUpgradePrompt);
+    document.getElementById('sflow-activate-license').addEventListener('click', async () => {
+        const input = document.getElementById('sflow-license-input');
+        const errorEl = document.getElementById('sflow-license-error');
+        const key = input.value.trim();
+
+        if (!key) {
+            errorEl.textContent = 'Please enter a license key';
+            return;
+        }
+
+        const result = await window.LicenseManager.validate(key);
+        if (result.success) {
+            closeUpgradePrompt();
+            showProActivatedNotification();
+        } else {
+            errorEl.textContent = result.error || 'Invalid license key';
+            input.classList.add('error');
+        }
+    });
+
+    // Auto-format key as user types
+    const input = document.getElementById('sflow-license-input');
+    input.addEventListener('input', (e) => {
+        let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+        // Auto-add dashes
+        if (value.length > 5 && value[5] !== '-') {
+            value = value.slice(0, 5) + '-' + value.slice(5);
+        }
+        if (value.length > 10 && value[10] !== '-') {
+            value = value.slice(0, 10) + '-' + value.slice(10);
+        }
+        if (value.length > 15 && value[15] !== '-') {
+            value = value.slice(0, 15) + '-' + value.slice(15);
+        }
+        e.target.value = value;
+    });
+    input.focus();
+}
+
+function showProActivatedNotification() {
+    const notification = document.createElement('div');
+    notification.className = 'sflow-pro-notification';
+    notification.innerHTML = `
+        <span class="sflow-pro-icon">${SVGs.crown}</span>
+        <span>Pro activated! Refresh to unlock all features.</span>
+    `;
+    document.body.appendChild(notification);
+
+    setTimeout(() => notification.remove(), 5000);
+}
 
 async function init() {
     // Initialize Theme immediately (for all frames, including iframes)
@@ -1046,7 +1208,16 @@ function setupToolbarListeners() {
     setTimeout(loadFeatureSettings, 500);
 }
 
-function applyTheme(themeName) {
+async function applyTheme(themeName) {
+    // Check Pro license for premium themes
+    if (PRO_THEMES.includes(themeName)) {
+        const isPro = await checkProAccess();
+        if (!isPro) {
+            showUpgradePrompt('themes');
+            return;
+        }
+    }
+
     const classes = document.body.className.split(' ').filter(c => !c.startsWith('sflow-theme-'));
     document.body.className = classes.join(' ');
 
@@ -1257,7 +1428,19 @@ const FONTS = {
     }
 };
 
-function applyFont(fontKey) {
+async function applyFont(fontKey) {
+    // Check Pro license for custom fonts
+    if (PRO_FONTS.includes(fontKey)) {
+        const isPro = await checkProAccess();
+        if (!isPro) {
+            showUpgradePrompt('fonts');
+            // Reset dropdown to default
+            const fontSelect = document.getElementById('sflow-font-select');
+            if (fontSelect) fontSelect.value = 'default';
+            return;
+        }
+    }
+
     currentFont = fontKey;
     const font = FONTS[fontKey] || FONTS.default;
 
@@ -1619,7 +1802,16 @@ const BRACKET_COLORS = [
     '#DDA0DD', // Plum
 ];
 
-function toggleRainbowBrackets() {
+async function toggleRainbowBrackets() {
+    // Check Pro license first (before toggling)
+    if (!rainbowBracketsEnabled) {
+        const isPro = await checkProAccess();
+        if (!isPro) {
+            showUpgradePrompt('rainbow_brackets');
+            return;
+        }
+    }
+
     rainbowBracketsEnabled = !rainbowBracketsEnabled;
 
     const rainbowBtn = document.getElementById('sflow-rainbow-toggle');

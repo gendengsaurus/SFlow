@@ -4,6 +4,32 @@ All notable changes to **ScriptFlow** will be documented in this file.
 
 ---
 
+## [1.5.0] - 2026-01-03
+
+### 🆕 New Features
+- **Pro/Freemium System**: Introducing ScriptFlow Pro with premium features!
+  - Premium Themes: Monokai and Nord are now Pro-only
+  - Custom Editor Fonts: Fira Code, JetBrains Mono, Cascadia Code, Source Code Pro
+  - Rainbow Brackets: Colorful bracket matching for better code readability
+  - License key activation via LemonSqueezy
+
+### 🎨 UI Improvements
+- **Pro Status Banner**: New Pro badge in popup showing license status
+- **Upgrade Modal**: Beautiful upgrade prompt when accessing Pro features
+- **License Key Input**: Easy activation with auto-formatting
+- **Pro Badges**: Clear visual indicators on Pro-only features
+
+### 🔧 Technical Changes
+- Added `license.js` module for license validation
+- License keys sync across devices via `chrome.storage.sync`
+- Removed unused `activeTab` permission (Chrome Web Store compliance)
+
+### 📝 Other
+- Updated Privacy Policy to reflect current permissions
+- Fixed GitHub repository link in popup
+
+---
+
 ## [1.4.2] - 2026-01-02
 
 ### ✨ Highlights

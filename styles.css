@@ -1803,6 +1803,7 @@ body[class*="sflow-theme-"] .sflow-table-row-themed:hover .DPvwYc {
     color: var(--accent-secondary) !important;
     filter: drop-shadow(0 0 5px var(--accent-color));
 }
+
 /* DROPDOWN MENUS */
 body[class*="sflow-theme-"] .JAPqpe.K0NPx {
     background-color: var(--bg-secondary) !important;
@@ -1818,4 +1819,271 @@ body[class*="sflow-theme-"] .z80M1 {
 body[class*="sflow-theme-"] .z80M1:hover {
     background-color: var(--accent-color) !important;
     color: #FFFFFF !important;
+}
+
+/* =========================================
+   UPGRADE MODAL & PRO FEATURES
+   ========================================= */
+
+.sflow-upgrade-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 100000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: sflow-fadeIn 0.2s ease;
+}
+
+@keyframes sflow-fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.sflow-upgrade-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid #bd93f9;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(189, 147, 249, 0.3),
+        0 0 40px rgba(189, 147, 249, 0.1);
+    animation: sflow-slideUp 0.3s ease;
+}
+
+@keyframes sflow-slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sflow-upgrade-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.sflow-upgrade-header h2 {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.sflow-upgrade-crown {
+    background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+    padding: 8px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sflow-upgrade-crown svg {
+    fill: #1a1a2e !important;
+    width: 20px;
+    height: 20px;
+}
+
+.sflow-upgrade-body {
+    color: #e0e0e0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.sflow-upgrade-body p {
+    margin: 0 0 16px 0;
+}
+
+.sflow-upgrade-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.sflow-upgrade-features li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.sflow-upgrade-features li:last-child {
+    border-bottom: none;
+}
+
+.sflow-upgrade-price {
+    background: rgba(189, 147, 249, 0.2);
+    padding: 12px 16px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(189, 147, 249, 0.3);
+}
+
+.sflow-upgrade-price strong {
+    color: #bd93f9;
+    font-size: 20px;
+}
+
+.sflow-upgrade-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.sflow-upgrade-btn {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.sflow-upgrade-primary {
+    background: linear-gradient(135deg, #bd93f9 0%, #ff79c6 100%);
+    color: #1a1a2e;
+}
+
+.sflow-upgrade-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(189, 147, 249, 0.4);
+}
+
+.sflow-upgrade-secondary {
+    background: transparent;
+    border: 1px solid #bd93f9;
+    color: #bd93f9;
+}
+
+.sflow-upgrade-secondary:hover {
+    background: rgba(189, 147, 249, 0.1);
+}
+
+.sflow-upgrade-cancel {
+    background: transparent;
+    color: #888;
+}
+
+.sflow-upgrade-cancel:hover {
+    color: #fff;
+}
+
+/* License Input */
+.sflow-license-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 16px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.sflow-license-input:focus {
+    outline: none;
+    border-color: #bd93f9;
+    box-shadow: 0 0 0 3px rgba(189, 147, 249, 0.2);
+}
+
+.sflow-license-input.error {
+    border-color: #ff5555;
+    animation: sflow-shake 0.3s ease;
+}
+
+@keyframes sflow-shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+.sflow-license-error {
+    color: #ff5555;
+    font-size: 13px;
+    margin-top: 8px;
+    text-align: center;
+}
+
+/* Pro Activated Notification */
+.sflow-pro-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #50fa7b 0%, #8be9fd 100%);
+    color: #1a1a2e;
+    padding: 16px 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    box-shadow: 0 10px 40px rgba(80, 250, 123, 0.4);
+    z-index: 100001;
+    animation: sflow-slideInRight 0.4s ease;
+}
+
+@keyframes sflow-slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.sflow-pro-icon svg {
+    fill: #1a1a2e !important;
+    width: 20px;
+    height: 20px;
+}
+
+/* Pro Badge for Toolbar Items */
+.sflow-pro-badge {
+    background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+    color: #1a1a2e;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 4px;
+    border-radius: 4px;
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    line-height: 1;
 }

@@ -1,76 +1,130 @@
 document.addEventListener('DOMContentLoaded', () => {
     // UI Elements
     const themeToggle = document.getElementById('theme-toggle');
-    const themeSelect = document.getElementById('theme-select');
-    const loveBtn = document.getElementById('love-btn');
-    const supportLinks = document.getElementById('support-links');
-
-    // Feature toggles
+    const themeButtons = document.querySelectorAll('.theme-btn');
     const zenToggle = document.getElementById('zen-toggle');
     const rainbowToggle = document.getElementById('rainbow-toggle');
     const todoToggle = document.getElementById('todo-toggle');
 
-    // Default theme constant for consistency
-    const DEFAULT_DARK_THEME = 'dracula';
+    // Pro UI elements
+    const proBanner = document.getElementById('pro-banner');
+    const proBannerText = document.getElementById('pro-banner-text');
+    const licensePanel = document.getElementById('license-panel');
+    const licenseInput = document.getElementById('license-input');
+    const activateBtn = document.getElementById('activate-btn');
+    const cancelLicenseBtn = document.getElementById('cancel-license-btn');
+    const licenseMessage = document.getElementById('license-message');
 
-    // Load Initial State with error handling
-    chrome.storage.local.get([
-        'theme', 'isEnabled',
-        'zenMode', 'rainbowBrackets', 'todoHighlight'
-    ], (result) => {
-        // Handle potential storage errors
-        if (chrome.runtime.lastError) {
-            console.error('ScriptFlow: Storage error', chrome.runtime.lastError);
-            applyDefaults();
-            return;
-        }
+    // State
+    let currentTheme = 'dracula';
+    let isPro = false;
+    const PRO_THEMES = ['monokai', 'nord'];
 
-        // Theme settings
-        const currentTheme = result.theme || DEFAULT_DARK_THEME;
-        const isEnabled = result.isEnabled !== false;
-
-        // Update theme UI
-        themeSelect.value = currentTheme !== 'default' ? currentTheme : DEFAULT_DARK_THEME;
-        themeToggle.checked = isEnabled && currentTheme !== 'default';
-        themeSelect.disabled = !themeToggle.checked;
-
-        // Feature toggles
-        if (zenToggle) zenToggle.checked = result.zenMode || false;
-        if (rainbowToggle) rainbowToggle.checked = result.rainbowBrackets || false;
-        if (todoToggle) todoToggle.checked = result.todoHighlight || false;
-    });
-
-    function applyDefaults() {
-        themeSelect.value = DEFAULT_DARK_THEME;
-        themeToggle.checked = true;
-        themeSelect.disabled = false;
+    // License validation
+    function isValidFormat(key) {
+        return /^SFLOW-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(key.toUpperCase().trim());
     }
 
-    // Theme Toggle Handler
-    themeToggle.addEventListener('change', () => {
-        const isEnabled = themeToggle.checked;
-        themeSelect.disabled = !isEnabled;
-        const newTheme = isEnabled ? themeSelect.value : 'default';
-        saveTheme(newTheme, isEnabled);
+    function validateChecksum(key) {
+        const parts = key.toUpperCase().trim().replace('SFLOW-', '').split('-');
+        if (parts.length !== 3) return false;
+        const checkPart = parts[0] + parts[1];
+        let sum = 0;
+        for (let i = 0; i < checkPart.length; i++) sum += checkPart.charCodeAt(i);
+        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let expected = '';
+        for (let i = 0; i < 4; i++) expected += chars[(sum * (i + 1)) % 36];
+        return parts[2] === expected;
+    }
+
+    // Initialize
+    chrome.storage.sync.get(['licenseKey', 'isPro'], (proResult) => {
+        isPro = proResult.isPro === true;
+        updateProUI();
+
+        chrome.storage.local.get(['theme', 'isEnabled', 'zenMode', 'rainbowBrackets', 'todoHighlight'], (result) => {
+            currentTheme = result.theme || 'dracula';
+            const isEnabled = result.isEnabled !== false;
+
+            themeToggle.checked = isEnabled && currentTheme !== 'default';
+            updateThemeButtons(currentTheme);
+
+            if (zenToggle) zenToggle.checked = result.zenMode || false;
+            if (todoToggle) todoToggle.checked = result.todoHighlight || false;
+            if (rainbowToggle) {
+                rainbowToggle.checked = result.rainbowBrackets || false;
+                updateProFeatures();
+            }
+        });
     });
 
-    // Theme Select Handler
-    themeSelect.addEventListener('change', () => {
-        if (themeToggle.checked) {
-            saveTheme(themeSelect.value, true);
+    function updateProUI() {
+        if (isPro) {
+            proBanner.classList.remove('inactive');
+            proBanner.classList.add('active');
+            proBannerText.textContent = '✓ Pro Active';
+            licensePanel.classList.remove('visible');
+
+            // Unlock Pro features
+            document.querySelectorAll('.pro-locked').forEach(el => {
+                el.classList.add('unlocked');
+            });
+        } else {
+            proBanner.classList.remove('active');
+            proBanner.classList.add('inactive');
+            proBannerText.textContent = 'Upgrade to Pro';
         }
-    });
+    }
 
-    // Feature Toggle Handlers
-    if (zenToggle) {
-        zenToggle.addEventListener('change', () => {
-            chrome.storage.local.set({ zenMode: zenToggle.checked });
+    function updateProFeatures() {
+        if (!isPro) {
+            document.querySelectorAll('.pro-locked').forEach(el => {
+                el.classList.remove('unlocked');
+            });
+        }
+    }
+
+    function updateThemeButtons(themeName) {
+        themeButtons.forEach(btn => {
+            const btnTheme = btn.dataset.theme;
+            btn.classList.toggle('active', btnTheme === themeName);
         });
     }
 
-    if (rainbowToggle) {
-        rainbowToggle.addEventListener('change', () => {
-            chrome.storage.local.set({ rainbowBrackets: rainbowToggle.checked });
+    function saveTheme(theme) {
+        currentTheme = theme;
+        const isEnabled = theme !== 'default';
+        themeToggle.checked = isEnabled;
+        updateThemeButtons(theme);
+        chrome.storage.local.set({ theme, isEnabled });
+    }
+
+    // Theme Toggle (master switch)
+    themeToggle.addEventListener('change', () => {
+        const newTheme = themeToggle.checked ? 'dracula' : 'default';
+        saveTheme(newTheme);
+    });
+
+    // Theme Grid Buttons
+    themeButtons.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const theme = btn.dataset.theme;
+
+            if (PRO_THEMES.includes(theme) && !isPro) {
+                licensePanel.classList.add('visible');
+                licenseMessage.textContent = `${theme.charAt(0).toUpperCase() + theme.slice(1)} is a Pro theme`;
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+
+            saveTheme(theme);
+        });
+    });
+
+    // Feature toggles
+    if (zenToggle) {
+        zenToggle.addEventListener('change', () => {
+            chrome.storage.local.set({ zenMode: zenToggle.checked });
         });
     }
 
@@ -80,29 +134,83 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Support Button Handler
-    loveBtn.addEventListener('click', () => {
-        const isHidden = supportLinks.classList.toggle('hidden');
-        loveBtn.setAttribute('aria-expanded', !isHidden);
-    });
+    if (rainbowToggle) {
+        rainbowToggle.addEventListener('change', () => {
+            if (!isPro) {
+                rainbowToggle.checked = false;
+                licensePanel.classList.add('visible');
+                licenseMessage.textContent = 'Rainbow Brackets is a Pro feature';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+            chrome.storage.local.set({ rainbowBrackets: rainbowToggle.checked });
+        });
+    }
 
-    // Keyboard support
-    loveBtn.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            loveBtn.click();
+    // Pro Banner click
+    proBanner.addEventListener('click', () => {
+        if (!isPro) {
+            licensePanel.classList.toggle('visible');
+            licenseMessage.textContent = '';
         }
     });
 
-    // Helper to save theme state
-    function saveTheme(theme, isEnabled) {
-        chrome.storage.local.set({
-            theme: theme,
-            isEnabled: isEnabled
-        }, () => {
-            if (chrome.runtime.lastError) {
-                console.error('ScriptFlow: Failed to save settings', chrome.runtime.lastError);
-            }
+    // Cancel license input
+    if (cancelLicenseBtn) {
+        cancelLicenseBtn.addEventListener('click', () => {
+            licensePanel.classList.remove('visible');
+            licenseInput.value = '';
+            licenseMessage.textContent = '';
         });
     }
+
+    // License input formatting
+    licenseInput.addEventListener('input', (e) => {
+        let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+        if (value.length > 5 && value[5] !== '-') value = value.slice(0, 5) + '-' + value.slice(5);
+        if (value.length > 10 && value[10] !== '-') value = value.slice(0, 10) + '-' + value.slice(10);
+        if (value.length > 15 && value[15] !== '-') value = value.slice(0, 15) + '-' + value.slice(15);
+        e.target.value = value;
+        licenseMessage.textContent = '';
+    });
+
+    // Activate license
+    activateBtn.addEventListener('click', () => {
+        const key = licenseInput.value.trim();
+
+        if (!key) {
+            licenseMessage.textContent = 'Enter a license key';
+            licenseMessage.className = 'license-message error';
+            return;
+        }
+
+        if (!isValidFormat(key)) {
+            licenseMessage.textContent = 'Invalid format';
+            licenseMessage.className = 'license-message error';
+            return;
+        }
+
+        if (!validateChecksum(key)) {
+            licenseMessage.textContent = 'Invalid license key';
+            licenseMessage.className = 'license-message error';
+            return;
+        }
+
+        // Success!
+        chrome.storage.sync.set({
+            licenseKey: key.toUpperCase().trim(),
+            isPro: true,
+            licenseValidatedAt: Date.now()
+        }, () => {
+            isPro = true;
+            licenseMessage.textContent = 'Pro activated!';
+            licenseMessage.className = 'license-message success';
+            updateProUI();
+            licenseInput.value = '';
+
+            setTimeout(() => {
+                licensePanel.classList.remove('visible');
+            }, 1500);
+        });
+    });
 });

@@ -33,8 +33,6 @@ The Extension requires the following permissions:
 | Permission | Purpose |
 |------------|---------|
 | `storage` | Save your theme and feature preferences locally |
-| `activeTab` | Apply themes to the current Apps Script editor tab |
-| `scripting` | Inject styling and toolbar into the editor |
 | `host_permissions` (script.google.com) | Only works on Google Apps Script pages |
 
 ## Third-Party Services

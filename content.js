@@ -1883,110 +1883,160 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
             applyFontSize(newSize);
         }
     }
-    // Indent Guides toggle
-    if (namespace === 'local' && changes.indentGuides !== undefined) {
-        toggleIndentGuides(changes.indentGuides.newValue);
+    // Focus Mode toggle
+    if (namespace === 'local' && changes.focusMode !== undefined) {
+        toggleFocusMode(changes.focusMode.newValue);
+    }
+    // Code Stats toggle
+    if (namespace === 'local' && changes.codeStats !== undefined) {
+        toggleCodeStats(changes.codeStats.newValue);
     }
 });
 
-// === INDENT GUIDES (PRO) ===
-let indentGuidesEnabled = false;
+// === FOCUS MODE (PRO) ===
+// Dims everything except the editor area for distraction-free coding
+let focusModeEnabled = false;
 
-async function toggleIndentGuides(enable) {
+async function toggleFocusMode(enable) {
     const isPro = await checkProAccess();
     if (!isPro) return;
 
-    indentGuidesEnabled = enable;
+    focusModeEnabled = enable;
 
-    let styleEl = document.getElementById('sflow-indent-guides');
+    let overlay = document.getElementById('sflow-focus-overlay');
+    let styleEl = document.getElementById('sflow-focus-styles');
 
     if (enable) {
+        // Add dimming overlay to non-editor elements
         if (!styleEl) {
             styleEl = document.createElement('style');
-            styleEl.id = 'sflow-indent-guides';
+            styleEl.id = 'sflow-focus-styles';
             document.head.appendChild(styleEl);
         }
 
         styleEl.textContent = `
-            /* Indent guide styling - subtle visual enhancement */
-            .monaco-editor .lines-content .core-guide-indent {
-                box-shadow: 1px 0 0 0 var(--border-color, #44475a) inset !important;
+            /* Focus Mode - dim distractions */
+            body.sflow-focus-mode .script-editor-header,
+            body.sflow-focus-mode .script-project-panel,
+            body.sflow-focus-mode .script-sidebar,
+            body.sflow-focus-mode .script-menubar,
+            body.sflow-focus-mode .script-toolbar-container,
+            body.sflow-focus-mode [role="navigation"],
+            body.sflow-focus-mode .docs-branding {
+                opacity: 0.3 !important;
+                transition: opacity 0.3s ease !important;
             }
             
-            .monaco-editor .lines-content .core-guide-indent.core-guide-indent-active {
-                box-shadow: 1px 0 0 0 var(--accent-color, #bd93f9) inset !important;
+            body.sflow-focus-mode .script-editor-header:hover,
+            body.sflow-focus-mode .script-project-panel:hover,
+            body.sflow-focus-mode .script-sidebar:hover,
+            body.sflow-focus-mode .script-menubar:hover,
+            body.sflow-focus-mode .script-toolbar-container:hover,
+            body.sflow-focus-mode [role="navigation"]:hover,
+            body.sflow-focus-mode .docs-branding:hover {
+                opacity: 1 !important;
+            }
+            
+            /* Keep editor bright */
+            body.sflow-focus-mode .monaco-editor {
+                opacity: 1 !important;
             }
         `;
+
+        document.body.classList.add('sflow-focus-mode');
     } else {
-        if (styleEl) {
-            styleEl.remove();
-        }
+        document.body.classList.remove('sflow-focus-mode');
+        if (styleEl) styleEl.remove();
     }
 }
 
-// Load indent guides on init
-chrome.storage.local.get(['indentGuides'], async (result) => {
-    if (result.indentGuides) {
-        toggleIndentGuides(true);
+// Load focus mode on init
+chrome.storage.local.get(['focusMode'], async (result) => {
+    if (result.focusMode) {
+        toggleFocusMode(true);
     }
 });
 
-// === LINE HIGHLIGHT (PRO) ===
-let lineHighlightEnabled = false;
+// === CODE STATS (PRO) ===
+// Shows line count and character count in a floating badge
+let codeStatsEnabled = false;
+let codeStatsEl = null;
 
-async function toggleLineHighlight(enable) {
+async function toggleCodeStats(enable) {
     const isPro = await checkProAccess();
     if (!isPro) return;
 
-    lineHighlightEnabled = enable;
-
-    let styleEl = document.getElementById('sflow-line-highlight');
+    codeStatsEnabled = enable;
 
     if (enable) {
-        if (!styleEl) {
-            styleEl = document.createElement('style');
-            styleEl.id = 'sflow-line-highlight';
-            document.head.appendChild(styleEl);
+        if (!codeStatsEl) {
+            codeStatsEl = document.createElement('div');
+            codeStatsEl.id = 'sflow-code-stats';
+            codeStatsEl.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: var(--bg-surface, #282a36);
+                color: var(--text-primary, #f8f8f2);
+                padding: 8px 14px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 99999;
+                display: flex;
+                gap: 12px;
+                border: 1px solid var(--border-color, #44475a);
+            `;
+            document.body.appendChild(codeStatsEl);
         }
+        updateCodeStats();
 
-        styleEl.textContent = `
-            /* Enhanced Current Line Highlight */
-            .monaco-editor .view-overlays .current-line {
-                background: linear-gradient(90deg, 
-                    var(--accent-color, #bd93f9)15 0%, 
-                    transparent 100%) !important;
-                border-left: 2px solid var(--accent-color, #bd93f9) !important;
-            }
-            
-            .monaco-editor .margin-view-overlays .current-line-margin {
-                background: linear-gradient(90deg, 
-                    var(--accent-color, #bd93f9)10 0%, 
-                    transparent 100%) !important;
-            }
-            
-            .monaco-editor .line-numbers.active-line-number {
-                color: var(--accent-color, #bd93f9) !important;
-                font-weight: bold !important;
-            }
-        `;
+        // Update stats periodically
+        if (!window.sflowStatsInterval) {
+            window.sflowStatsInterval = setInterval(updateCodeStats, 2000);
+        }
     } else {
-        if (styleEl) {
-            styleEl.remove();
+        if (codeStatsEl) {
+            codeStatsEl.remove();
+            codeStatsEl = null;
+        }
+        if (window.sflowStatsInterval) {
+            clearInterval(window.sflowStatsInterval);
+            window.sflowStatsInterval = null;
         }
     }
 }
 
-// Listen for line highlight changes
-chrome.storage.onChanged.addListener((changes, namespace) => {
-    if (namespace === 'local' && changes.lineHighlight !== undefined) {
-        toggleLineHighlight(changes.lineHighlight.newValue);
-    }
-});
+function updateCodeStats() {
+    if (!codeStatsEl) return;
 
-// Load line highlight on init
-chrome.storage.local.get(['lineHighlight'], async (result) => {
-    if (result.lineHighlight) {
-        toggleLineHighlight(true);
+    // Try to get content from Monaco editor
+    const editor = document.querySelector('.monaco-editor .view-lines');
+    if (!editor) {
+        codeStatsEl.innerHTML = '<span>📊 No editor</span>';
+        return;
+    }
+
+    const lines = editor.querySelectorAll('.view-line');
+    const lineCount = lines.length;
+
+    // Estimate character count
+    let charCount = 0;
+    lines.forEach(line => {
+        charCount += (line.textContent || '').length;
+    });
+
+    codeStatsEl.innerHTML = `
+        <span>📝 ${lineCount} lines</span>
+        <span>💬 ${charCount.toLocaleString()} chars</span>
+    `;
+}
+
+// Load code stats on init
+chrome.storage.local.get(['codeStats'], async (result) => {
+    if (result.codeStats) {
+        toggleCodeStats(true);
     }
 });
 

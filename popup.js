@@ -256,44 +256,43 @@ document.addEventListener('DOMContentLoaded', () => {
         updateThemeButtons(theme);
     }
 
-    // Indent Guides (PRO)
-    const indentGuidesToggle = document.getElementById('indent-guides-toggle');
+    // Focus Mode (PRO)
+    const focusModeToggle = document.getElementById('focus-mode-toggle');
 
-    if (indentGuidesToggle) {
-        // Load saved state
-        chrome.storage.local.get(['indentGuides'], (result) => {
-            indentGuidesToggle.checked = result.indentGuides || false;
+    if (focusModeToggle) {
+        chrome.storage.local.get(['focusMode'], (result) => {
+            focusModeToggle.checked = result.focusMode || false;
         });
 
-        indentGuidesToggle.addEventListener('change', () => {
+        focusModeToggle.addEventListener('change', () => {
             if (!isPro) {
-                indentGuidesToggle.checked = false;
+                focusModeToggle.checked = false;
                 licensePanel.classList.add('visible');
-                licenseMessage.textContent = 'Indent Guides is a Pro feature';
+                licenseMessage.textContent = 'Focus Mode is a Pro feature';
                 licenseMessage.className = 'license-message error';
                 return;
             }
-            chrome.storage.local.set({ indentGuides: indentGuidesToggle.checked });
+            chrome.storage.local.set({ focusMode: focusModeToggle.checked });
         });
     }
 
-    // Line Highlight (PRO)
-    const lineHighlightToggle = document.getElementById('line-highlight-toggle');
+    // Code Stats (PRO)
+    const codeStatsToggle = document.getElementById('code-stats-toggle');
 
-    if (lineHighlightToggle) {
-        chrome.storage.local.get(['lineHighlight'], (result) => {
-            lineHighlightToggle.checked = result.lineHighlight || false;
+    if (codeStatsToggle) {
+        chrome.storage.local.get(['codeStats'], (result) => {
+            codeStatsToggle.checked = result.codeStats || false;
         });
 
-        lineHighlightToggle.addEventListener('change', () => {
+        codeStatsToggle.addEventListener('change', () => {
             if (!isPro) {
-                lineHighlightToggle.checked = false;
+                codeStatsToggle.checked = false;
                 licensePanel.classList.add('visible');
-                licenseMessage.textContent = 'Line Highlight is a Pro feature';
+                licenseMessage.textContent = 'Code Stats is a Pro feature';
                 licenseMessage.className = 'license-message error';
                 return;
             }
-            chrome.storage.local.set({ lineHighlight: lineHighlightToggle.checked });
+            chrome.storage.local.set({ codeStats: codeStatsToggle.checked });
         });
     }
 

@@ -33,6 +33,35 @@ const THEMES = {
         fgSecondary: '#81A1C1',
         bgPrimary: '#242933', // Darker polar night
         border: '#434C5E'
+    },
+    // === NEW PRO THEMES ===
+    solarized: {
+        accent: '#b58900', // Solarized Yellow
+        fgPrimary: '#839496',
+        fgSecondary: '#657b83',
+        bgPrimary: '#002b36', // Solarized Base03
+        border: '#073642'
+    },
+    onedark: {
+        accent: '#61afef', // One Dark Blue
+        fgPrimary: '#abb2bf',
+        fgSecondary: '#5c6370',
+        bgPrimary: '#282c34', // One Dark BG
+        border: '#3e4451'
+    },
+    github: {
+        accent: '#58a6ff', // GitHub Blue
+        fgPrimary: '#c9d1d9',
+        fgSecondary: '#8b949e',
+        bgPrimary: '#0d1117', // GitHub Dark BG
+        border: '#30363d'
+    },
+    catppuccin: {
+        accent: '#cba6f7', // Catppuccin Mauve
+        fgPrimary: '#cdd6f4',
+        fgSecondary: '#a6adc8',
+        bgPrimary: '#1e1e2e', // Catppuccin Base
+        border: '#313244'
     }
 };
 
@@ -68,7 +97,7 @@ const SVGs = {
 };
 
 // === PRO FEATURE GATING ===
-const PRO_THEMES = ['monokai', 'nord'];
+const PRO_THEMES = ['monokai', 'nord', 'solarized', 'onedark', 'github', 'catppuccin'];
 const PRO_FONTS = ['firacode', 'jetbrains', 'cascadia', 'source'];
 
 /**
@@ -1780,11 +1809,49 @@ function loadFeatureSettings() {
                 rainbowBracketsEnabled = false;
                 toggleRainbowBrackets();
             }
+
+            // Apply Font Size (Pro feature)
+            if (result.fontSize && result.fontSize !== 14) {
+                applyFontSize(result.fontSize);
+            }
         });
     } catch (e) {
         console.warn('ScriptFlow: Could not load feature settings');
     }
 }
+
+// Apply custom font size to editor
+async function applyFontSize(size) {
+    const isPro = await checkProAccess();
+    if (!isPro) return;
+
+    let styleEl = document.getElementById('sflow-fontsize-styles');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'sflow-fontsize-styles';
+        document.head.appendChild(styleEl);
+    }
+
+    styleEl.textContent = `
+        .monaco-editor,
+        .monaco-editor .view-lines,
+        .monaco-editor .view-line,
+        .monaco-editor .margin-view-overlays .line-numbers {
+            font-size: ${size}px !important;
+            line-height: ${Math.round(size * 1.5)}px !important;
+        }
+    `;
+}
+
+// Listen for font size changes from popup
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === 'local' && changes.fontSize) {
+        const newSize = changes.fontSize.newValue;
+        if (newSize) {
+            applyFontSize(newSize);
+        }
+    }
+});
 
 // ===========================================
 // PHASE 2 FEATURES

@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // State
     let currentTheme = 'dracula';
     let isPro = false;
-    const PRO_THEMES = ['monokai', 'nord'];
+    const PRO_THEMES = ['monokai', 'nord', 'solarized', 'onedark', 'github', 'catppuccin'];
 
     // License validation
     function isValidFormat(key) {
@@ -144,6 +144,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             chrome.storage.local.set({ rainbowBrackets: rainbowToggle.checked });
+        });
+    }
+
+    // Font Size Slider (PRO)
+    const fontSizeSlider = document.getElementById('font-size-slider');
+    const fontSizeValue = document.getElementById('font-size-value');
+
+    if (fontSizeSlider) {
+        // Load saved font size
+        chrome.storage.local.get(['fontSize'], (result) => {
+            const size = result.fontSize || 14;
+            fontSizeSlider.value = size;
+            fontSizeValue.textContent = size + 'px';
+        });
+
+        fontSizeSlider.addEventListener('input', (e) => {
+            const size = e.target.value;
+            fontSizeValue.textContent = size + 'px';
+
+            if (!isPro) {
+                fontSizeSlider.value = 14;
+                fontSizeValue.textContent = '14px';
+                licensePanel.classList.add('visible');
+                licenseMessage.textContent = 'Font Size is a Pro feature';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+
+            chrome.storage.local.set({ fontSize: parseInt(size) });
         });
     }
 

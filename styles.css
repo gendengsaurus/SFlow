@@ -424,6 +424,147 @@ body.sflow-theme-nord {
 
 
 /* =========================================
+   4. SOLARIZED DARK THEME (PRO)
+   ========================================= */
+body.sflow-theme-solarized {
+    --bg-primary: #002b36;
+    --bg-dark: #001f27;
+    --bg-secondary: #073642;
+    --bg-hover: #094855;
+    --border-color: #0a5568;
+    --bg-selection: #073642;
+
+    --fg-primary: #839496;
+    --fg-secondary: #657b83;
+    --accent-color: #b58900;
+    --accent-secondary: #cb4b16;
+    --color-info: #2aa198;
+    --color-success: #859900;
+    --color-warning: #b58900;
+    --color-danger: #dc322f;
+
+    --hover-overlay: #07364288;
+    --active-overlay: #073642cc;
+    --focus-ring: #b58900;
+
+    --syntax-foreground: #839496;
+    --syntax-comment: #586e75;
+    --syntax-keyword: #859900;
+    --syntax-string: #2aa198;
+    --syntax-function: #268bd2;
+    --syntax-number: #d33682;
+    --syntax-type: #b58900;
+    --syntax-constant: #cb4b16;
+    --syntax-operator: #859900;
+}
+
+/* =========================================
+   5. ONE DARK THEME (PRO)
+   ========================================= */
+body.sflow-theme-onedark {
+    --bg-primary: #282c34;
+    --bg-dark: #21252b;
+    --bg-secondary: #2c313a;
+    --bg-hover: #3e4451;
+    --border-color: #4b5263;
+    --bg-selection: #3e4451;
+
+    --fg-primary: #abb2bf;
+    --fg-secondary: #5c6370;
+    --accent-color: #61afef;
+    --accent-secondary: #c678dd;
+    --color-info: #56b6c2;
+    --color-success: #98c379;
+    --color-warning: #e5c07b;
+    --color-danger: #e06c75;
+
+    --hover-overlay: #3e445188;
+    --active-overlay: #3e4451cc;
+    --focus-ring: #61afef;
+
+    --syntax-foreground: #abb2bf;
+    --syntax-comment: #5c6370;
+    --syntax-keyword: #c678dd;
+    --syntax-string: #98c379;
+    --syntax-function: #61afef;
+    --syntax-number: #d19a66;
+    --syntax-type: #e5c07b;
+    --syntax-constant: #56b6c2;
+    --syntax-operator: #c678dd;
+}
+
+/* =========================================
+   6. GITHUB DARK THEME (PRO)
+   ========================================= */
+body.sflow-theme-github {
+    --bg-primary: #0d1117;
+    --bg-dark: #010409;
+    --bg-secondary: #161b22;
+    --bg-hover: #21262d;
+    --border-color: #30363d;
+    --bg-selection: #264f78;
+
+    --fg-primary: #c9d1d9;
+    --fg-secondary: #8b949e;
+    --accent-color: #58a6ff;
+    --accent-secondary: #1f6feb;
+    --color-info: #58a6ff;
+    --color-success: #3fb950;
+    --color-warning: #d29922;
+    --color-danger: #f85149;
+
+    --hover-overlay: #21262d88;
+    --active-overlay: #21262dcc;
+    --focus-ring: #58a6ff;
+
+    --syntax-foreground: #c9d1d9;
+    --syntax-comment: #8b949e;
+    --syntax-keyword: #ff7b72;
+    --syntax-string: #a5d6ff;
+    --syntax-function: #d2a8ff;
+    --syntax-number: #79c0ff;
+    --syntax-type: #ffa657;
+    --syntax-constant: #79c0ff;
+    --syntax-operator: #ff7b72;
+}
+
+/* =========================================
+   7. CATPPUCCIN MOCHA THEME (PRO)
+   ========================================= */
+body.sflow-theme-catppuccin {
+    --bg-primary: #1e1e2e;
+    --bg-dark: #181825;
+    --bg-secondary: #313244;
+    --bg-hover: #45475a;
+    --border-color: #585b70;
+    --bg-selection: #45475a;
+
+    --fg-primary: #cdd6f4;
+    --fg-secondary: #a6adc8;
+    --accent-color: #cba6f7;
+    --accent-secondary: #f5c2e7;
+    --color-info: #89dceb;
+    --color-success: #a6e3a1;
+    --color-warning: #f9e2af;
+    --color-danger: #f38ba8;
+
+    --hover-overlay: #45475a88;
+    --active-overlay: #45475acc;
+    --focus-ring: #cba6f7;
+
+    --syntax-foreground: #cdd6f4;
+    --syntax-comment: #6c7086;
+    --syntax-keyword: #cba6f7;
+    --syntax-string: #a6e3a1;
+    --syntax-function: #89b4fa;
+    --syntax-number: #fab387;
+    --syntax-type: #f9e2af;
+    --syntax-constant: #89dceb;
+    --syntax-operator: #cba6f7;
+}
+
+
+/* =========================================
    APPLICATION OF VARIABLES (GLOBAL)
    ========================================= */
 

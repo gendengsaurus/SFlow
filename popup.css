@@ -386,6 +386,22 @@ body {
     background: linear-gradient(135deg, #2e3440 50%, #3b4252 50%);
 }
 
+.theme-preview-solarized {
+    background: linear-gradient(135deg, #002b36 50%, #073642 50%);
+}
+
+.theme-preview-onedark {
+    background: linear-gradient(135deg, #282c34 50%, #3e4451 50%);
+}
+
+.theme-preview-github {
+    background: linear-gradient(135deg, #0d1117 50%, #161b22 50%);
+}
+
+.theme-preview-catppuccin {
+    background: linear-gradient(135deg, #1e1e2e 50%, #313244 50%);
+}
+
 .theme-name {
     font-size: 10px;
     font-weight: 500;
@@ -549,4 +565,64 @@ body {
     font-size: 10px;
     color: var(--text-muted);
     font-weight: 500;
+}
+
+/* =========================================
+   Font Size Slider
+   ========================================= */
+.slider-item {
+    cursor: default;
+}
+
+.slider-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.slider-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 32px;
+    text-align: right;
+}
+
+.slider-input {
+    width: 60px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--bg-hover);
+    border-radius: 2px;
+    outline: none;
+}
+
+.slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.slider-input::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.slider-input::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.pro-locked.slider-item .slider-input {
+    pointer-events: none;
+    opacity: 0.5;
 }

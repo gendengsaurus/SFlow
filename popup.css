@@ -673,6 +673,12 @@ body {
     opacity: 0.5;
 }
 
+/* When Pro is unlocked, re-enable slider */
+.pro-locked.unlocked.slider-item .slider-input {
+    pointer-events: auto;
+    opacity: 1;
+}
+
 /* =========================================
    Settings Export/Import
    ========================================= */

@@ -614,67 +614,41 @@ body {
 }
 
 /* =========================================
-   Font Size Slider
+   Font Size Dropdown
    ========================================= */
-.slider-item {
-    cursor: default;
-}
-
-.slider-control {
+.font-size-control {
     display: flex;
     align-items: center;
-    gap: 8px;
 }
 
-.slider-value {
+.font-size-select {
+    padding: 4px 8px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
     font-size: 11px;
     font-weight: 600;
-    color: var(--accent);
-    min-width: 32px;
-    text-align: right;
-}
-
-.slider-input {
-    width: 60px;
-    height: 4px;
-    -webkit-appearance: none;
-    appearance: none;
-    background: var(--bg-hover);
-    border-radius: 2px;
-    outline: none;
-}
-
-.slider-input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 14px;
-    height: 14px;
-    background: var(--accent);
-    border-radius: 50%;
     cursor: pointer;
+    outline: none;
     transition: var(--transition-fast);
 }
 
-.slider-input::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
+.font-size-select:hover {
+    border-color: var(--accent);
 }
 
-.slider-input::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
-    background: var(--accent);
-    border-radius: 50%;
-    cursor: pointer;
-    border: none;
+.font-size-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(189, 147, 249, 0.2);
 }
 
-.pro-locked.slider-item .slider-input {
+.pro-locked .font-size-select {
     pointer-events: none;
     opacity: 0.5;
 }
 
-/* When Pro is unlocked, re-enable slider */
-.pro-locked.unlocked.slider-item .slider-input {
+.pro-locked.unlocked .font-size-select {
     pointer-events: auto;
     opacity: 1;
 }

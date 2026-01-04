@@ -1099,6 +1099,18 @@ function injectToolbarInline(container, referenceNode) {
         </div>
 
         <div class="sflow-control-group">
+            <select id="sflow-fontsize-select" class="sflow-tooltip" data-tooltip="Font Size">
+                <option value="12">12px</option>
+                <option value="13">13px</option>
+                <option value="14" selected>14px</option>
+                <option value="15">15px</option>
+                <option value="16">16px</option>
+                <option value="18">18px</option>
+                <option value="20">20px</option>
+            </select>
+        </div>
+
+        <div class="sflow-control-group">
             <button id="sflow-snippet-btn" class="sflow-icon-btn sflow-tooltip" data-tooltip="View Snippets (type + Tab)">
                 ${SVGs.snippet}
             </button>
@@ -1171,6 +1183,23 @@ function setupToolbarListeners() {
     if (fontSelect) {
         fontSelect.addEventListener('change', (e) => {
             applyFont(e.target.value);
+        }, { signal });
+    }
+
+    // Font Size Select
+    const fontsizeSelect = document.getElementById('sflow-fontsize-select');
+    if (fontsizeSelect) {
+        // Load saved font size
+        chrome.storage.local.get(['fontSize'], (result) => {
+            if (result.fontSize) {
+                fontsizeSelect.value = result.fontSize;
+            }
+        });
+
+        fontsizeSelect.addEventListener('change', (e) => {
+            const size = parseInt(e.target.value);
+            chrome.storage.local.set({ fontSize: size });
+            applyFontSize(size);
         }, { signal });
     }
 

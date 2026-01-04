@@ -166,25 +166,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Font Size Slider (PRO)
-    const fontSizeSlider = document.getElementById('font-size-slider');
-    const fontSizeValue = document.getElementById('font-size-value');
+    // Font Size Dropdown (PRO)
+    const fontSizeSelect = document.getElementById('font-size-select');
 
-    if (fontSizeSlider) {
+    if (fontSizeSelect) {
         // Load saved font size
         chrome.storage.local.get(['fontSize'], (result) => {
             const size = result.fontSize || 14;
-            fontSizeSlider.value = size;
-            fontSizeValue.textContent = size + 'px';
+            fontSizeSelect.value = size;
         });
 
-        fontSizeSlider.addEventListener('input', (e) => {
+        fontSizeSelect.addEventListener('change', (e) => {
             const size = e.target.value;
-            fontSizeValue.textContent = size + 'px';
 
             if (!isPro) {
-                fontSizeSlider.value = 14;
-                fontSizeValue.textContent = '14px';
+                fontSizeSelect.value = 14;
                 licensePanel.classList.add('visible');
                 licenseMessage.textContent = 'Font Size is a Pro feature';
                 licenseMessage.className = 'license-message error';

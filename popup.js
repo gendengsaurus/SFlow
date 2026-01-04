@@ -192,150 +192,151 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             chrome.storage.local.set({ fontSize: parseInt(size) });
-        }
+        });
+    }
 
     // Pro Banner click
     proBanner.addEventListener('click', () => {
-            if (!isPro) {
-                licensePanel.classList.toggle('visible');
-                licenseMessage.textContent = '';
-            }
-        });
-
-        // Cancel license input
-        if (cancelLicenseBtn) {
-            cancelLicenseBtn.addEventListener('click', () => {
-                licensePanel.classList.remove('visible');
-                licenseInput.value = '';
-                licenseMessage.textContent = '';
-            });
-        }
-
-        // License input formatting
-        licenseInput.addEventListener('input', (e) => {
-            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
-            if (value.length > 5 && value[5] !== '-') value = value.slice(0, 5) + '-' + value.slice(5);
-            if (value.length > 10 && value[10] !== '-') value = value.slice(0, 10) + '-' + value.slice(10);
-            if (value.length > 15 && value[15] !== '-') value = value.slice(0, 15) + '-' + value.slice(15);
-            e.target.value = value;
+        if (!isPro) {
+            licensePanel.classList.toggle('visible');
             licenseMessage.textContent = '';
-        });
-
-        // Activate license
-        activateBtn.addEventListener('click', () => {
-            const key = licenseInput.value.trim();
-
-            if (!key) {
-                licenseMessage.textContent = 'Enter a license key';
-                licenseMessage.className = 'license-message error';
-                return;
-            }
-
-            if (!isValidFormat(key)) {
-                licenseMessage.textContent = 'Invalid format';
-                licenseMessage.className = 'license-message error';
-                return;
-            }
-
-            if (!validateChecksum(key)) {
-                licenseMessage.textContent = 'Invalid license key';
-                licenseMessage.className = 'license-message error';
-                return;
-            }
-
-            // Success!
-            chrome.storage.sync.set({
-                licenseKey: key.toUpperCase().trim(),
-                isPro: true,
-                licenseValidatedAt: Date.now()
-            }, () => {
-                isPro = true;
-                licenseMessage.textContent = 'Pro activated!';
-                licenseMessage.className = 'license-message success';
-                updateProUI();
-                licenseInput.value = '';
-
-                setTimeout(() => {
-                    licensePanel.classList.remove('visible');
-                }, 1500);
-            });
-        });
-
-        // Export/Import Settings (PRO)
-        const exportBtn = document.getElementById('export-btn');
-        const importBtn = document.getElementById('import-btn');
-        const importFile = document.getElementById('import-file');
-
-        if (exportBtn) {
-            exportBtn.addEventListener('click', () => {
-                if (!isPro) {
-                    licensePanel.classList.add('visible');
-                    licenseMessage.textContent = 'Settings Export is a Pro feature';
-                    licenseMessage.className = 'license-message error';
-                    return;
-                }
-
-                // Export all settings
-                chrome.storage.local.get(null, (localData) => {
-                    chrome.storage.sync.get(['licenseKey', 'isPro'], (syncData) => {
-                        const exportData = {
-                            version: '1.5.0',
-                            exportDate: new Date().toISOString(),
-                            local: localData,
-                            license: {
-                                isPro: syncData.isPro,
-                                // Don't export the actual key for security
-                            }
-                        };
-
-                        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `scriptflow-settings-${Date.now()}.json`;
-                        a.click();
-                        URL.revokeObjectURL(url);
-                    });
-                });
-            });
-        }
-
-        if (importBtn && importFile) {
-            importBtn.addEventListener('click', () => {
-                if (!isPro) {
-                    licensePanel.classList.add('visible');
-                    licenseMessage.textContent = 'Settings Import is a Pro feature';
-                    licenseMessage.className = 'license-message error';
-                    return;
-                }
-                importFile.click();
-            });
-
-            importFile.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    try {
-                        const data = JSON.parse(event.target.result);
-
-                        if (!data.local) {
-                            alert('Invalid settings file');
-                            return;
-                        }
-
-                        chrome.storage.local.set(data.local, () => {
-                            alert('Settings imported! Reload extension to apply.');
-                            // Reload popup to show new settings
-                            location.reload();
-                        });
-                    } catch (err) {
-                        alert('Failed to parse settings file');
-                    }
-                };
-                reader.readAsText(file);
-                importFile.value = ''; // Reset for next import
-            });
         }
     });
+
+    // Cancel license input
+    if (cancelLicenseBtn) {
+        cancelLicenseBtn.addEventListener('click', () => {
+            licensePanel.classList.remove('visible');
+            licenseInput.value = '';
+            licenseMessage.textContent = '';
+        });
+    }
+
+    // License input formatting
+    licenseInput.addEventListener('input', (e) => {
+        let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+        if (value.length > 5 && value[5] !== '-') value = value.slice(0, 5) + '-' + value.slice(5);
+        if (value.length > 10 && value[10] !== '-') value = value.slice(0, 10) + '-' + value.slice(10);
+        if (value.length > 15 && value[15] !== '-') value = value.slice(0, 15) + '-' + value.slice(15);
+        e.target.value = value;
+        licenseMessage.textContent = '';
+    });
+
+    // Activate license
+    activateBtn.addEventListener('click', () => {
+        const key = licenseInput.value.trim();
+
+        if (!key) {
+            licenseMessage.textContent = 'Enter a license key';
+            licenseMessage.className = 'license-message error';
+            return;
+        }
+
+        if (!isValidFormat(key)) {
+            licenseMessage.textContent = 'Invalid format';
+            licenseMessage.className = 'license-message error';
+            return;
+        }
+
+        if (!validateChecksum(key)) {
+            licenseMessage.textContent = 'Invalid license key';
+            licenseMessage.className = 'license-message error';
+            return;
+        }
+
+        // Success!
+        chrome.storage.sync.set({
+            licenseKey: key.toUpperCase().trim(),
+            isPro: true,
+            licenseValidatedAt: Date.now()
+        }, () => {
+            isPro = true;
+            licenseMessage.textContent = 'Pro activated!';
+            licenseMessage.className = 'license-message success';
+            updateProUI();
+            licenseInput.value = '';
+
+            setTimeout(() => {
+                licensePanel.classList.remove('visible');
+            }, 1500);
+        });
+    });
+
+    // Export/Import Settings (PRO)
+    const exportBtn = document.getElementById('export-btn');
+    const importBtn = document.getElementById('import-btn');
+    const importFile = document.getElementById('import-file');
+
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            if (!isPro) {
+                licensePanel.classList.add('visible');
+                licenseMessage.textContent = 'Settings Export is a Pro feature';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+
+            // Export all settings
+            chrome.storage.local.get(null, (localData) => {
+                chrome.storage.sync.get(['licenseKey', 'isPro'], (syncData) => {
+                    const exportData = {
+                        version: '1.5.0',
+                        exportDate: new Date().toISOString(),
+                        local: localData,
+                        license: {
+                            isPro: syncData.isPro,
+                            // Don't export the actual key for security
+                        }
+                    };
+
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `scriptflow-settings-${Date.now()}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            });
+        });
+    }
+
+    if (importBtn && importFile) {
+        importBtn.addEventListener('click', () => {
+            if (!isPro) {
+                licensePanel.classList.add('visible');
+                licenseMessage.textContent = 'Settings Import is a Pro feature';
+                licenseMessage.className = 'license-message error';
+                return;
+            }
+            importFile.click();
+        });
+
+        importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+
+                    if (!data.local) {
+                        alert('Invalid settings file');
+                        return;
+                    }
+
+                    chrome.storage.local.set(data.local, () => {
+                        alert('Settings imported! Reload extension to apply.');
+                        // Reload popup to show new settings
+                        location.reload();
+                    });
+                } catch (err) {
+                    alert('Failed to parse settings file');
+                }
+            };
+            reader.readAsText(file);
+            importFile.value = ''; // Reset for next import
+        });
+    }
+});

@@ -1835,9 +1835,8 @@ function loadFeatureSettings() {
 }
 
 // Apply custom font size to editor
-async function applyFontSize(size) {
-    const isPro = await checkProAccess();
-    if (!isPro) return;
+function applyFontSize(size) {
+    if (!size || size < 10 || size > 24) return;
 
     let styleEl = document.getElementById('sflow-fontsize-styles');
     if (!styleEl) {
